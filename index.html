@@ -72,7 +72,7 @@ footer{padding:32px 0;color:var(--muted);border-top:1px solid var(--line);font-s
 [hidden]{display:none!important}
 @media(max-width:800px){.hero,.cfg{grid-template-columns:1fr}.preview{position:static}section{padding:44px 0}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
- 
+
 select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
 .cfg3{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
 .cfg3>#panel{display:grid;gap:14px}
@@ -103,7 +103,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 <button data-go="config" style="background:var(--larch);color:#1c1408;font-weight:700">Конструктор</button>
 <button data-go="interior">Интерьер</button>
 </nav></div></header>
- 
+
 <main>
 <!-- ГЛАВНАЯ -->
 <div id="view-home">
@@ -116,7 +116,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 </div>
 <div class="art" id="heroArt"></div>
 </div>
- 
+
 <section id="why" style="padding-top:20px"><div class="wrap">
 <h2>Почему покупают у нас</h2>
 <div class="grid">
@@ -125,19 +125,19 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 <div class="card"><h3>Можно жить сразу</h3><p>Отделка, кухонный блок, сантехника и электрика уже внутри. Заезжаете с чемоданом.</p></div>
 <div class="card"><h3>Вы видите весь процесс</h3><p>Фотоотчёты с завода каждую неделю и личный менеджер на связи.</p></div>
 </div></div></section>
- 
+
 <section id="projects"><div class="wrap">
 <h2>Готовые проекты</h2>
 <p>Любой проект можно изменить в конструкторе: фасад, крышу, комплектацию.</p>
 <div class="grid" id="projGrid"></div>
 </div></section>
- 
+
 <section class="band"><div class="wrap">
 <h2>Хотите сами решить, каким будет дом?</h2>
 <p>В конструкторе вы выберете модель, фасад, крышу и опции, сразу увидите цену, а потом обсудите результат с нашим дизайнером в чате.</p>
 <button class="btn" data-go="config">Открыть конструктор</button>
 </div></section>
- 
+
 <section id="reviews"><div class="wrap">
 <h2>Отзывы владельцев</h2>
 <div class="grid">
@@ -145,7 +145,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 <div class="card"><div class="stars">★★★★★</div><p>«Боялась, что каркас не переживёт зиму. Прожили уже две, счета за отопление около 4 000 ₽ в месяц. Очень довольна.»</p><p class="who">Ирина, 52 года, Подмосковье</p></div>
 <div class="card"><div class="stars">★★★★☆</div><p>«Дизайнер терпеливо переделывала планировку три раза. Единственное пожелание: быстрее отвечать по вечерам.»</p><p class="who">Андрей, 49 лет, Ленинградская область</p></div>
 </div></div></section>
- 
+
 <section id="faq"><div class="wrap" style="max-width:820px">
 <h2>Частые вопросы</h2>
 <details><summary>Сколько стоит дом и что входит в цену?</summary><p>«Лесной» от 2,4 млн ₽, «Озёрный» от 3,9 млн ₽, «Семейный» от 5,8 млн ₽. В цену входят доставка до 300 км, сборка, отделка, электрика, сантехника и кухонный блок. Фундамент считаем отдельно, обычно 150–400 тыс. ₽.</p></details>
@@ -155,7 +155,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 <details><summary>Как проходит работа с дизайнером?</summary><p>Вы собираете дом в конструкторе на сайте, отправляете заявку и обсуждаете детали в чате с дизайнером. Он присылает планировку и визуализацию, правки вносим бесплатно.</p></details>
 <details><summary>Зимой в доме будет тепло?</summary><p>Да. Дома рассчитаны на эксплуатацию при −35 °C. Стены и кровля утеплены 200 мм минеральной ваты.</p></details>
 </div></section>
- 
+
 <section id="contact" style="padding-top:20px"><div class="wrap">
 <h2>Получить консультацию</h2>
 <p>Оставьте контактные данные, и менеджер свяжется с вами в течение 15 минут, в рабочее время.</p>
@@ -169,7 +169,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 </div></section>
 <footer><div class="wrap">© Лиственница, модульные дома. Демонстрационный сайт: названия, цены и отзывы условные.</div></footer>
 </div>
- 
+
 <!-- КОНСТРУКТОР -->
 <div id="view-config" hidden><div class="wrap" style="padding-top:28px;padding-bottom:64px">
 <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">3D-конструктор дома</h1>
@@ -192,7 +192,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 <div class="card"><h3>Материалы</h3><p class="who" style="margin:0 0 6px">Стены</p><div class="opt" id="oWall"></div><p class="who" style="margin:0 0 6px">Пол</p><div class="opt" id="oFloor"></div><div class="opt" id="oRoof" style="margin:0"></div></div>
 </div></div>
 </div></div>
- 
+
 <!-- ИНТЕРЬЕР -->
 <div id="view-interior" hidden><div class="wrap" style="padding-top:28px;padding-bottom:64px">
 <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Дизайн интерьера</h1>
@@ -211,7 +211,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 </div></div>
 </div>
 </div></div>
- 
+
 <div id="view-chat" hidden><div class="wrap" style="max-width:720px;padding-top:28px;padding-bottom:64px">
 <h2>Чат с дизайнером</h2>
 <p>Мария, дизайнер компании, получила ваш проект. Напишите, что хотите изменить.</p>
@@ -221,7 +221,7 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 <div class="ok" id="finOk" role="status" style="margin-top:14px"></div>
 </div></div>
 </main>
- 
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 const $=s=>document.querySelector(s), fmt=n=>n.toLocaleString('ru-RU')+' ₽';
@@ -233,7 +233,7 @@ const FACADES=[{id:'wood',name:'Лиственница',c:'#b9834a',p:0},{id:'da
 const ROOFS=[{id:'flat',name:'Плоская',p:0},{id:'gable',name:'Двускатная',p:120000}];
 const EXTRAS=[{id:'terr',name:'Терраса 20 м²',p:180000},{id:'heat',name:'Тёплый пол',p:90000},{id:'smart',name:'Умный дом',p:110000},{id:'sun',name:'Солнечные панели',p:240000}];
 let S={model:'oz',facade:'wood',roof:'gable',extras:[],step:0};
- 
+
 function house(m,f,r,terr,sun){
  const w=m.w,x=(460-w)/2,t=terr?110:0;
  const roof=r==='gable'?`<polygon points="${x-10},170 ${x+w/2},120 ${x+w+10},170" fill="#2a3532"/>`:`<rect x="${x-10}" y="160" width="${w+20}" height="12" fill="#2a3532"/>`;
@@ -243,7 +243,7 @@ function house(m,f,r,terr,sun){
 }
 const fac=id=>FACADES.find(f=>f.id===id), mod=id=>MODELS.find(m=>m.id===id);
 function price(){const m=mod(S.model);return m.price+fac(S.facade).p+ROOFS.find(r=>r.id===S.roof).p+S.extras.reduce((a,id)=>a+EXTRAS.find(e=>e.id===id).p,0)}
- 
+
 /* навигация */
 function go(v,anchor){
  $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-chat').hidden=true;
@@ -256,12 +256,12 @@ document.addEventListener('click',e=>{
  const p=b.dataset.pick;if(p)S.model=p;
  go(b.dataset.go,b.dataset.anchor);
 });
- 
+
 /* главная */
 $('#heroArt').innerHTML=house(MODELS[1],'#b9834a','gable',true,false);
 $('#projGrid').innerHTML=MODELS.map((m,i)=>`<article class="card proj"><div class="pic">${house(m,FACADES[i].c,i?'gable':'flat',i>0,false)}</div><div class="txt"><h3>${m.name}</h3><span class="who">${m.area} м² · ${m.rooms}</span><span class="price">от ${fmt(m.price)}</span><button class="btn" data-go="config" data-pick="${m.id}">Настроить этот дом</button></div></article>`).join('');
 $('#lead').addEventListener('submit',e=>{e.preventDefault();const n=new FormData(e.target).get('name');const ok=$('#leadOk');ok.textContent=`Спасибо, ${n}! Менеджер позвонит вам в течение 15 минут.`;ok.style.display='block';e.target.reset()});
- 
+
 /* 3D-конструктор */
 const GW=16,GD=12,H=2.7,BOX=new THREE.BoxGeometry(1,1,1),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TYPES={liv:{n:'Гостиная',w:5,d:4},bed:{n:'Спальня',w:4,d:3},kit:{n:'Кухня',w:3,d:3,wet:1},bath:{n:'Ванная',w:2,d:2,wet:1},kid:{n:'Детская',w:3,d:3},off:{n:'Кабинет',w:3,d:3},hall:{n:'Прихожая',w:2,d:2},wr:{n:'Гардеробная',w:2,d:2},ter:{n:'Терраса',w:4,d:2,open:1}};
@@ -271,7 +271,7 @@ const PRE={les:[['liv',5,4],['kit',3,3],['bed',4,3],['bath',2,2],['hall',2,2]],o
 Object.assign(S,{rooms:[],wall:'wood',floor:'oak',roof:false,sel:null,loaded:null});
 let R,cam,scene,wallMat,roofMat,selBox,el,stage,inited=false,uid=0,dead=[],drag=null,mode=null,pd=0,lw=0,lh=0,tt;
 const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),cv={th:.6,ph:1,d:24,gth:.6,gph:1,gd:24},P=new Map();
- 
+
 function forest(){const c=document.createElement('canvas');c.width=1400;c.height=800;const g=c.getContext('2d');
  const s=g.createLinearGradient(0,0,0,800);s.addColorStop(0,'#d5e4e0');s.addColorStop(.5,'#b3cbbf');s.addColorStop(1,'#6b8c74');g.fillStyle=s;g.fillRect(0,0,1400,800);
  let sd=7;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
@@ -282,14 +282,14 @@ function forest(){const c=document.createElement('canvas');c.width=1400;c.height
    g.fillRect(x-3,y-th*.1,6,th*.1+8)}
   g.fillStyle='rgba(225,238,232,.16)';g.fillRect(0,base-60,1400,140)});
  return c.toDataURL('image/jpeg',.85)}
- 
+
 function tex(t,c){const k=document.createElement('canvas');k.width=k.height=128;const g=k.getContext('2d');g.fillStyle=c;g.fillRect(0,0,128,128);g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;
  if(t==='wood'){for(let x=0;x<128;x+=16){g.beginPath();g.moveTo(x,0);g.lineTo(x,128);g.stroke()}}
  else if(t==='brick'){for(let y=0;y<128;y+=16){g.beginPath();g.moveTo(0,y);g.lineTo(128,y);g.stroke();for(let x=(y/16%2)*16;x<128;x+=32){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+16);g.stroke()}}}
  else if(t==='stone'){for(let i=0;i<400;i++){g.fillStyle='rgba(0,0,0,'+Math.random()*.08+')';g.fillRect(Math.random()*128,Math.random()*128,3,3)}}
  return new THREE.CanvasTexture(k)}
 function applyWall(){const w=WALLS.find(x=>x.id===S.wall);wallMat.map=tex(w.t,w.c);wallMat.color.set(0xffffff);wallMat.needsUpdate=true}
- 
+
 function free(x,z,w,d,ex){return x>=0&&z>=0&&x+w<=GW&&z+d<=GD&&!S.rooms.some(o=>o!==ex&&x<o.x+o.w&&o.x<x+w&&z<o.z+o.d&&o.z<z+d)}
 function spot(w,d){let cx=GW/2,cz=GD/2;const n=S.rooms.length;if(n){cx=S.rooms.reduce((a,o)=>a+o.x+o.w/2,0)/n;cz=S.rooms.reduce((a,o)=>a+o.z+o.d/2,0)/n}
  let best=null,bd=1e9;for(let x=0;x<=GW-w;x++)for(let z=0;z<=GD-d;z++)if(free(x,z,w,d)){const q=(x+w/2-cx)**2+(z+d/2-cz)**2;if(q<bd){bd=q;best=[x,z]}}return best}
@@ -319,7 +319,7 @@ function price(){const w=WALLS.find(x=>x.id===S.wall),f=FLOORS.find(x=>x.id===S.
 function toast(t){const o=$('#toast');o.textContent=t;o.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>o.style.opacity=0,2800)}
 function loadPreset(id){const tok=++uid;S.rooms.forEach(r=>{r.gone=true;dead.push(r)});S.rooms=[];S.sel=null;
  (PRE[id]||PRE.oz).forEach((a,i)=>setTimeout(()=>{if(S.loaded===id&&inited)addRoom(a[0],a[1],a[2])},250+i*280));syncUI()}
- 
+
 function syncUI(){const r=S.sel,tot=S.rooms.reduce((a,o)=>a+o.w*o.d,0);
  $('#tArea').textContent=`Комнат: ${S.rooms.length}, общая площадь: ${tot} м²`;$('#tPrice').textContent='≈ '+fmt(price());
  $('#selT').textContent=r?TYPES[r.type].n+', '+r.w*r.d+' м²':'Выберите комнату на модели';
@@ -328,12 +328,12 @@ function syncUI(){const r=S.sel,tot=S.rooms.reduce((a,o)=>a+o.w*o.d,0);
  const ch=(a,arr,cur)=>arr.map(i=>`<button class="chip" data-a="${a}:${i.id}" aria-pressed="${cur===i.id}">${i.n}<small>${i.p?'+ '+fmt(i.p)+'/м²':'входит в цену'}</small></button>`).join('');
  $('#oWall').innerHTML=ch('wall',WALLS,S.wall);$('#oFloor').innerHTML=ch('floor',FLOORS,S.floor);
  $('#oRoof').innerHTML=`<button class="chip" data-a="roof" aria-pressed="${S.roof}">Показать крышу<small>+ ${fmt(8000)}/м²</small></button>`}
- 
+
 const ndc=e=>{const b=el.getBoundingClientRect();return new THREE.Vector2((e.clientX-b.left)/b.width*2-1,-(e.clientY-b.top)/b.height*2+1)};
 function hit(e){ray.setFromCamera(ndc(e),cam);const t=[];S.rooms.forEach(r=>{t.push(r.fl);if(!TYPES[r.type].open)t.push(...r.ws)});const i=ray.intersectObjects(t,false)[0];return i?i.object.userData.r:null}
 function gpt(e){ray.setFromCamera(ndc(e),cam);const p=new THREE.Vector3();return ray.ray.intersectPlane(plane,p)||p}
 const d2=()=>{const a=[...P.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
- 
+
 function init(){
  el=$('#c3d');stage=$('#stage');R=new THREE.WebGLRenderer({canvas:el,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
  scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(45,1,.1,200);
@@ -381,7 +381,7 @@ function loop(){requestAnimationFrame(loop);if($('#view-config').hidden||$('#cfg
 function render(){if(!inited){inited=true;init()}
  if(S.loaded!==S.model){S.loaded=S.model;loadPreset(S.model||'oz')}
  $('#cfgBox').hidden=false;syncUI()}
- 
+
 /* интерьер: расстановка мебели */
 const FLIST={sofa:{n:'Диван',w:2,d:.9,c:'#8a6a8f',ic:'🛋️'},armchair:{n:'Кресло',w:.8,d:.8,c:'#b98a5a',ic:'🪑'},tv:{n:'Телевизор',w:1.2,d:.15,c:'#2a2a2a',ic:'📺'},table:{n:'Стол',w:1.2,d:.8,c:'#a97c50',ic:'🍽️'},bookshelf:{n:'Стеллаж',w:1,d:.3,c:'#7a5a3a',ic:'📚'},bed:{n:'Кровать',w:1.6,d:2,c:'#c79a9a',ic:'🛏️'},wardrobe:{n:'Шкаф',w:1.2,d:.6,c:'#6b5843',ic:'🚪'},nightstand:{n:'Тумба',w:.5,d:.4,c:'#8a7052',ic:'🕯️'},desk:{n:'Письменный стол',w:1.2,d:.6,c:'#9c8158',ic:'💻'},kitchen:{n:'Кухня',w:2,d:.6,c:'#7d9490',ic:'🍳'},fridge:{n:'Холодильник',w:.7,d:.7,c:'#c9d2d3',ic:'🧊'},sink:{n:'Раковина',w:.6,d:.5,c:'#cfd8da',ic:'🚰'},toilet:{n:'Унитаз',w:.4,d:.6,c:'#e4e9ea',ic:'🚽'},bathtub:{n:'Ванна',w:1.7,d:.75,c:'#dfe6e7',ic:'🛁'}};
 const ROOM_FURN={liv:['sofa','armchair','tv','table','bookshelf'],bed:['bed','wardrobe','nightstand','desk'],kid:['bed','wardrobe','desk','bookshelf'],kit:['kitchen','fridge','table'],bath:['sink','toilet','bathtub'],off:['desk','bookshelf','armchair'],hall:['wardrobe'],wr:['wardrobe'],ter:['table','armchair']};
@@ -475,7 +475,7 @@ function drawInterior(){
   g.restore();
  });
  g.restore();
- if(ianim===false&&(Iroom.furn||[]).some(f=>f.sc!==1||f.dead)){ianim=true;requestAnimationFrame(ianimStep)}
+ if(ianim===false&&(Iroom.furn||[]).some(f=>f.sc!==1)){ianim=true;requestAnimationFrame(ianimStep)}
 }
 function ianimStep(){let more=false;(Iroom?.furn||[]).forEach(f=>{const tgt=f.dead?0:1;f.sc=(f.sc==null?0:f.sc)+(tgt-(f.sc==null?0:f.sc))*.2;if(Math.abs(tgt-f.sc)>.01)more=true;else f.sc=tgt});
  if(Iroom){Iroom.furn=Iroom.furn.filter(f=>!(f.dead&&f.sc<=.02));drawInterior()}
@@ -508,7 +508,7 @@ $('#oIFloor').addEventListener('click',e=>{const b=e.target.closest('[data-fl]')
 $('#fRot').onclick=()=>{if(!Isel)return;Isel.rot=!Isel.rot;const fw=Isel.rot?Isel.d:Isel.w,fd=Isel.rot?Isel.w:Isel.d;Isel.x=clamp(Isel.x,0,Math.max(0,Iroom.w-fw));Isel.z=clamp(Isel.z,0,Math.max(0,Iroom.d-fd));drawInterior()};
 $('#fDel').onclick=()=>{if(!Isel)return;Isel.dead=true;Isel=null;$('#furnSel').hidden=true;drawInterior()};
 $('#toChat2').onclick=()=>S.rooms.length?openChat('interior'):toast('Сначала соберите дом в конструкторе.');
- 
+
 /* чат с дизайнером */
 function summary(){const furnTxt=S.rooms.filter(r=>r.furn&&r.furn.length).map(r=>`  ${TYPES[r.type].n}: `+r.furn.map(f=>f.n).join(', ')).join('\n');
  return 'Моя конфигурация:\n'+S.rooms.map(r=>`• ${TYPES[r.type].n} ${r.w}×${r.d} м = ${r.w*r.d} м², пол: ${FLOORS.find(f=>f.id===(r.floorId||S.floor)).n}`).join('\n')+`\nСтены: ${WALLS.find(x=>x.id===S.wall).n}\nКрыша: ${S.roof?'да':'нет'}\nИтого: ${fmt(price())}`+(furnTxt?`\nМебель:\n${furnTxt}`:'')}
