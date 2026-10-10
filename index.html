@@ -183,9 +183,9 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 <form class="lead" id="lead">
 <input required name="name" placeholder="Ваше имя" aria-label="Имя">
 <input required name="phone" type="tel" placeholder="Телефон" aria-label="Телефон">
-<input required name="name" placeholder="Тема обращения" aria-label="Ваша проблема">
 <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
-<button class="btn" type="submit">Отправить обращение</button>
+<input required name="name" placeholder="Тема обращения" aria-label="Ваша проблема">
+<button class="btn" type="submit">Заказать звонок</button>
 <div class="ok" id="leadOk" role="status"></div>
 </form>
 </div></section>
@@ -690,8 +690,15 @@ $('#toChat2').onclick=()=>openSubmit('interior');
 
 /* ===== Supabase: аккаунты, роли, диалоги, проекты, записи ===== */
 const cfg=window.APP_CONFIG||{};
-const sb=(window.supabase&&cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABASE_URL+cfg.SUPABASE_ANON_KEY))?window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY):null;
-const NOSB='Сервер аккаунтов не настроен: заполните config.js (см. README).';
+const cfgOk=!!(cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABASE_URL+cfg.SUPABASE_ANON_KEY));
+// запрос без ответа дольше 15 секунд считается ошибкой сети (иначе кнопка «зависает»)
+const fetchT=(u,o)=>{o=o||{};const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);return fetch(u,{...o,signal:o.signal||c.signal}).finally(()=>clearTimeout(t))};
+const sb=(window.supabase&&cfgOk)?window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{global:{fetch:fetchT}}):null;
+const NOSB=(cfgOk&&!window.supabase)
+ ?'Не загрузилась библиотека входа (скрипт с cdn.jsdelivr.net). Возможно, он недоступен в вашей сети. Обновите страницу или попробуйте другую сеть.'
+ :'Сервер аккаунтов не настроен: заполните config.js (см. README).';
+const NETMSG='Не удалось связаться с сервером аккаунтов. Проверьте интернет. Если другие сайты открываются, возможно, ваш провайдер ограничивает доступ к сервису: попробуйте другую сеть (например, мобильную) или VPN.';
+const isNetErr=e=>!!e&&(e.status===0||e.name==='AuthRetryableFetchError'||/fetch|network|load failed|abort|timeout|ECONN/i.test(String(e.message||'')));
 const TZ=cfg.TIMEZONE||'Europe/Moscow',TZL=cfg.TIMEZONE_LABEL||'Москва';
 const WORK={from:cfg.WORK_FROM!=null?cfg.WORK_FROM:10,to:cfg.WORK_TO!=null?cfg.WORK_TO:19,days:cfg.WORK_DAYS||[1,2,3,4,5,6],ahead:cfg.SLOT_DAYS_AHEAD||14};
 let PROF=null,recovery=false,amode='in',gtt;
@@ -731,16 +738,17 @@ function setMode(m){amode=m;[...$('#authTabs').children].forEach(c=>c.setAttribu
  $('#authT').textContent=m==='in'?'Вход':'Регистрация';amsg(sb?'':NOSB)}
 function openAuth(){setMode('in');$('#authModal').hidden=false;setTimeout(()=>$('#lLogin').focus(),30)}
 function closeAuth(){$('#authModal').hidden=true}
-async function emailFor(login){if(login.includes('@'))return login;const{data}=await sb.rpc('email_by_username',{u:login});return data||null}
+async function emailFor(login){if(login.includes('@'))return login;const{data,error}=await sb.rpc('email_by_username',{u:login});if(error)throw new Error(error.message||'rpc');return data||null}
 // Просим браузер сохранить логин и пароль. Chrome и Edge понимают этот вызов, остальные браузеры предлагают сохранить сами при отправке формы.
 function rememberCreds(id,pass,name){try{if(window.PasswordCredential&&navigator.credentials)navigator.credentials.store(new PasswordCredential({id,password:pass,name:name||id}))}catch(e){}}
 async function doLogin(lg,pass){ // возвращает текст ошибки или пустую строку при успехе
  if(!sb)return NOSB;
  if(!lg)return 'Введите почту или юзернейм.';
  if(pass.length<6)return 'Пароль должен быть не короче 6 символов.';
- const email=await emailFor(lg);if(!email)return 'Неверный логин или пароль.';
- const{error}=await sb.auth.signInWithPassword({email,password:pass});
- if(error)return /confirm/i.test(error.message)?'Подтвердите почту по ссылке из письма.':'Неверный логин или пароль.';
+ let email;try{email=await emailFor(lg)}catch(e){return NETMSG}
+ if(!email)return 'Неверный логин или пароль.';
+ let res;try{res=await sb.auth.signInWithPassword({email,password:pass})}catch(e){return NETMSG}
+ if(res.error){if(isNetErr(res.error))return NETMSG;return /confirm/i.test(res.error.message)?'Подтвердите почту по ссылке из письма.':'Неверный логин или пароль.'}
  rememberCreds(lg,pass);return ''}
 async function doSignup(nm,un,ml,pass){ // возвращает {ok:true} или {msg:'...'}
  if(!sb)return{msg:NOSB};
@@ -748,11 +756,12 @@ async function doSignup(nm,un,ml,pass){ // возвращает {ok:true} или
  if(!USER_RE.test(un))return{msg:'Юзернейм: 3–20 символов, латиница, цифры и _.'};
  if(!EMAIL_RE.test(ml))return{msg:'Введите корректную почту.'};
  if(pass.length<6)return{msg:'Пароль должен быть не короче 6 символов.'};
- const{data:taken,error:te}=await sb.rpc('username_taken',{u:un});
- if(te)return{msg:'Ошибка сервера. Попробуйте ещё раз.'};
- if(taken)return{msg:'Такой юзернейм уже занят.'};
- const{data,error}=await sb.auth.signUp({email:ml,password:pass,options:{data:{username:un,full_name:nm},emailRedirectTo:redirect()}});
- if(error)return{msg:/registered|already/i.test(error.message)?'Эта почта уже зарегистрирована.':error.message};
+ let t;try{t=await sb.rpc('username_taken',{u:un})}catch(e){return{msg:NETMSG}}
+ if(t.error)return{msg:isNetErr(t.error)?NETMSG:'Ошибка сервера. Попробуйте ещё раз.'};
+ if(t.data)return{msg:'Такой юзернейм уже занят.'};
+ let r;try{r=await sb.auth.signUp({email:ml,password:pass,options:{data:{username:un,full_name:nm},emailRedirectTo:redirect()}})}catch(e){return{msg:NETMSG}}
+ if(r.error)return{msg:isNetErr(r.error)?NETMSG:/registered|already/i.test(r.error.message)?'Эта почта уже зарегистрирована.':r.error.message};
+ const data=r.data;
  if(data.user&&data.user.identities&&data.user.identities.length===0)return{msg:'Эта почта уже зарегистрирована.'};
  if(!data.session)return{msg:'Мы отправили письмо: подтвердите почту по ссылке и войдите.'};
  rememberCreds(un,pass,nm);return{ok:true}}
@@ -771,7 +780,7 @@ $('#signupForm').addEventListener('submit',async e=>{e.preventDefault();amsg('')
  catch(x){amsg('Не удалось связаться с сервером. Попробуйте ещё раз.')}
  finally{btn.disabled=false}});
 $('#aForgot').onclick=async()=>{if(!sb)return amsg(NOSB);const lg=$('#lLogin').value.trim();if(!lg)return amsg('Введите почту или юзернейм в поле выше.');
- const email=await emailFor(lg);if(email)await sb.auth.resetPasswordForEmail(email,{redirectTo:redirect()});
+ try{const email=await emailFor(lg);if(email)await sb.auth.resetPasswordForEmail(email,{redirectTo:redirect()})}catch(e){return amsg(NETMSG)}
  amsg('Если такой аккаунт есть, мы отправили письмо со ссылкой для смены пароля.')};
 if(sb)sb.auth.onAuthStateChange(ev=>{
  if(ev==='PASSWORD_RECOVERY'){recovery=true;setTimeout(async()=>{await loadProfile();openProfile('profile')},0)}
