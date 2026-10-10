@@ -72,7 +72,7 @@
         [hidden]{display:none!important}
         @media(max-width:800px){.hero,.cfg{grid-template-columns:1fr}.preview{position:static}section{padding:44px 0}}
         @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-        
+
         select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
         .cfg3{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
         .cfg3>#panel{display:grid;gap:14px}
@@ -90,6 +90,14 @@
         .pad .chip{padding:0;text-align:center;min-height:44px}
         .opt .chip small{font-size:.8rem}
         @media(max-width:800px){.cfg3{grid-template-columns:1fr}.stage{position:relative;top:0;height:56vh}}
+        .modal{position:fixed;inset:0;z-index:50;background:rgba(10,20,15,.55);display:flex;align-items:center;justify-content:center;padding:16px}
+        .mbox{position:relative;background:var(--surface);color:var(--ink);border-radius:16px;padding:24px;width:100%;max-width:420px;max-height:90vh;overflow:auto}
+        .mbox .x{position:absolute;top:6px;right:10px;background:none;border:0;font-size:1.8rem;color:var(--muted);cursor:pointer;min-width:44px;min-height:44px}
+        .mbox .opt{margin-bottom:14px}
+        .staff{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
+        .staff .chip small{white-space:normal}
+        #gToast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;z-index:60;opacity:0;transition:opacity .25s;max-width:90vw;pointer-events:none}
+        @media(max-width:800px){.staff{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
@@ -103,6 +111,9 @@
             <button data-go="home" data-anchor="contact">Контакты</button>
             <button data-go="config" style="background:var(--larch);color:#1c1408;font-weight:700">Конструктор</button>
             <button data-go="interior">Интерьер</button>
+            <button id="authBtn" style="border:2px solid var(--pine);font-weight:700">Войти</button>
+            <button id="outBtn" hidden>Выйти</button>
+            <button id="staffBtn" hidden style="border:2px solid var(--larch);font-weight:700">Панель</button>
         </nav>
     </div>
 </header>
@@ -221,7 +232,6 @@
                 <form class="lead" id="lead">
                     <input required name="name" placeholder="Ваше имя" aria-label="Имя">
                     <input required name="phone" type="tel" placeholder="Телефон/Почта" aria-label="Контактные данные">
-                    <input required name="name" placeholder="Тема обращения" aria-label="Ваша проблема">
                     <button class="btn" type="submit">Отправить обращение</button>
                     <div class="ok" id="leadOk" role="status"></div>
                 </form>
@@ -347,7 +357,7 @@
     <div id="view-chat" hidden>
         <div class="wrap" style="max-width:720px;padding-top:28px;padding-bottom:64px">
             <h2>Чат с дизайнером</h2>
-            <p>Мария, дизайнер компании, получила ваш проект. Напишите, что хотите изменить.</p>
+            <p>Здесь вы переписываетесь с командой дизайнеров. Ответы приходят в реальном времени.</p>
             <div class="chat" id="chat" aria-live="polite"></div>
             <form class="send" id="sendForm"><input id="msgIn" placeholder="Например: хочу добавить ещё одну спальню"
                                                     aria-label="Сообщение">
@@ -355,14 +365,92 @@
             </form>
             <div class="row" style="margin-top:16px">
                 <button class="btn ghost" id="editCfg">Вернуться к модели</button>
+                <button class="btn ghost" id="sendCfg">Отправить конфигурацию</button>
                 <button class="btn" id="finish">Согласовать проект</button>
             </div>
             <div class="ok" id="finOk" role="status" style="margin-top:14px"></div>
         </div>
     </div>
+    <div id="view-profile" hidden>
+        <div class="wrap" style="max-width:640px;padding-top:28px;padding-bottom:64px">
+            <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Личный кабинет</h1>
+            <form id="pForm" class="lead" style="max-width:none" novalidate>
+                <label class="fld">Имя и Фамилия<input id="pName" autocomplete="name"></label>
+                <label class="fld">Юзернейм<input id="pUser" autocomplete="username"></label>
+                <label class="fld">Почта<input id="pMail" type="email" autocomplete="email"></label>
+                <label class="fld">Новый пароль<input id="pNew" type="password" autocomplete="new-password"
+                                                      placeholder="Оставьте пустым, если не меняете"></label>
+                <label class="fld">Текущий пароль (нужен для сохранения и удаления)<input id="pOld" type="password"
+                                                                                          autocomplete="current-password"></label>
+                <button class="btn" type="submit">Сохранить</button>
+                <div class="ok" id="pMsg" role="status"></div>
+            </form>
+            <div class="row" style="margin-top:20px">
+                <button class="btn ghost" id="pOut">Выйти</button>
+                <button class="btn ghost" id="pDel" style="border-color:#b3261e;color:#b3261e">Удалить аккаунт</button>
+            </div>
+            <p class="who" style="margin-top:14px">Аккаунт хранится на сервере: войти можно с любого устройства.</p>
+        </div>
+    </div>
+    <div id="view-staff" hidden>
+        <div class="wrap" style="padding-top:28px;padding-bottom:64px">
+            <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Панель команды</h1>
+            <div class="card" id="teamBox" hidden style="margin-bottom:20px"><h3>Дизайнеры</h3>
+                <div id="teamList"></div>
+                <form id="teamAdd" class="send" style="margin-top:10px"><input id="teamUser"
+                                                                               placeholder="Юзернейм пользователя, которого сделать дизайнером"
+                                                                               aria-label="Юзернейм">
+                    <button class="btn" type="submit">Назначить</button>
+                </form>
+            </div>
+            <div class="staff">
+                <div class="card"><h3>Диалоги</h3>
+                    <div id="convList"></div>
+                </div>
+                <div><h3 id="stTitle">Выберите диалог</h3>
+                    <div id="stAssign" class="card" hidden style="margin-bottom:12px"></div>
+                    <div class="chat" id="stChat"></div>
+                    <form class="send" id="stForm" hidden><input id="stIn" placeholder="Ответ клиенту"
+                                                                 aria-label="Ответ клиенту">
+                        <button class="btn" type="submit">Отправить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="gToast" role="status"></div>
+    <div id="authModal" class="modal" hidden>
+        <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="authT">
+            <button class="x" id="authX" aria-label="Закрыть">×</button>
+            <h2 id="authT">Вход</h2>
+            <div class="opt" id="authTabs">
+                <button class="chip" data-t="in" aria-pressed="true">Вход</button>
+                <button class="chip" data-t="up" aria-pressed="false">Регистрация</button>
+            </div>
+            <form id="authForm" class="lead" style="max-width:none" novalidate>
+                <input id="aLogin" placeholder="Почта или юзернейм" autocomplete="username"
+                       aria-label="Почта или юзернейм">
+                <input id="aName" placeholder="Имя и Фамилия" autocomplete="name" aria-label="Имя и Фамилия" hidden>
+                <input id="aUser" placeholder="Юзернейм (латиница, цифры, _)" autocomplete="username"
+                       aria-label="Юзернейм" hidden>
+                <input id="aMail" type="email" placeholder="Почта" autocomplete="email" aria-label="Почта" hidden>
+                <input id="aPass" type="password" placeholder="Пароль (от 6 символов)" autocomplete="current-password"
+                       aria-label="Пароль">
+                <button class="btn" type="submit" id="aSubmit">Войти</button>
+                <button type="button" id="aForgot"
+                        style="background:none;border:0;color:var(--muted);text-align:left;padding:6px 0;font:inherit;cursor:pointer;text-decoration:underline">
+                    Забыли пароль?
+                </button>
+                <div class="ok" id="aMsg" role="alert"></div>
+            </form>
+            <p class="who" style="margin:12px 0 0">Аккаунт хранится на сервере: войти можно с любого устройства.</p>
+        </div>
+    </div>
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
 <script>
     const $=s=>document.querySelector(s), fmt=n=>n.toLocaleString('ru-RU')+' ₽';
     const MODELS=[
@@ -373,7 +461,7 @@
     const ROOFS=[{id:'flat',name:'Плоская',p:0},{id:'gable',name:'Двускатная',p:120000}];
     const EXTRAS=[{id:'terr',name:'Терраса 20 м²',p:180000},{id:'heat',name:'Тёплый пол',p:90000},{id:'smart',name:'Умный дом',p:110000},{id:'sun',name:'Солнечные панели',p:240000}];
     let S={model:'oz',facade:'wood',roof:'gable',extras:[],step:0};
-    
+
     function house(m,f,r,terr,sun){
      const w=m.w,x=(460-w)/2,t=terr?110:0;
      const roof=r==='gable'?`<polygon points="${x-10},170 ${x+w/2},120 ${x+w+10},170" fill="#2a3532"/>`:`<rect x="${x-10}" y="160" width="${w+20}" height="12" fill="#2a3532"/>`;
@@ -383,12 +471,14 @@
     }
     const fac=id=>FACADES.find(f=>f.id===id), mod=id=>MODELS.find(m=>m.id===id);
     function price(){const m=mod(S.model);return m.price+fac(S.facade).p+ROOFS.find(r=>r.id===S.roof).p+S.extras.reduce((a,id)=>a+EXTRAS.find(e=>e.id===id).p,0)}
-    
+
     /* навигация */
     function go(v,anchor){
-     $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-chat').hidden=true;
+     $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-profile').hidden=v!=='profile';$('#view-staff').hidden=v!=='staff';$('#view-chat').hidden=true;
      if(v==='config'){render()}
      if(v==='interior'){renderInterior()}
+     if(v==='profile'){renderProfile()}
+     if(v==='staff'){renderStaff()}
      if(anchor){setTimeout(()=>{const el=document.getElementById(anchor);el&&el.scrollIntoView()},20)}else{window.scrollTo(0,0)}
     }
     document.addEventListener('click',e=>{
@@ -396,12 +486,12 @@
      const p=b.dataset.pick;if(p)S.model=p;
      go(b.dataset.go,b.dataset.anchor);
     });
-    
+
     /* главная */
     $('#heroArt').innerHTML=house(MODELS[1],'#b9834a','gable',true,false);
     $('#projGrid').innerHTML=MODELS.map((m,i)=>`<article class="card proj"><div class="pic">${house(m,FACADES[i].c,i?'gable':'flat',i>0,false)}</div><div class="txt"><h3>${m.name}</h3><span class="who">${m.area} м² · ${m.rooms}</span><span class="price">от ${fmt(m.price)}</span><button class="btn" data-go="config" data-pick="${m.id}">Настроить этот дом</button></div></article>`).join('');
     $('#lead').addEventListener('submit',e=>{e.preventDefault();const n=new FormData(e.target).get('name');const ok=$('#leadOk');ok.textContent=`Спасибо, ${n}! Менеджер позвонит вам в течение 15 минут.`;ok.style.display='block';e.target.reset()});
-    
+
     /* 3D-конструктор */
     const GW=16,GD=12,H=2.7,BOX=new THREE.BoxGeometry(1,1,1),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
     const TYPES={liv:{n:'Гостиная',w:5,d:4},bed:{n:'Спальня',w:4,d:3},kit:{n:'Кухня',w:3,d:3,wet:1},bath:{n:'Ванная',w:2,d:2,wet:1},kid:{n:'Детская',w:3,d:3},off:{n:'Кабинет',w:3,d:3},hall:{n:'Прихожая',w:2,d:2},wr:{n:'Гардеробная',w:2,d:2},ter:{n:'Терраса',w:4,d:2,open:1}};
@@ -411,7 +501,7 @@
     Object.assign(S,{rooms:[],wall:'wood',floor:'oak',roof:false,sel:null,loaded:null});
     let R,cam,scene,wallMat,roofMat,selBox,el,stage,inited=false,uid=0,dead=[],drag=null,mode=null,pd=0,lw=0,lh=0,tt;
     const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),cv={th:.6,ph:1,d:24,gth:.6,gph:1,gd:24},P=new Map();
-    
+
     function forest(){const c=document.createElement('canvas');c.width=1400;c.height=800;const g=c.getContext('2d');
      const s=g.createLinearGradient(0,0,0,800);s.addColorStop(0,'#d5e4e0');s.addColorStop(.5,'#b3cbbf');s.addColorStop(1,'#6b8c74');g.fillStyle=s;g.fillRect(0,0,1400,800);
      let sd=7;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
@@ -422,14 +512,14 @@
        g.fillRect(x-3,y-th*.1,6,th*.1+8)}
       g.fillStyle='rgba(225,238,232,.16)';g.fillRect(0,base-60,1400,140)});
      return c.toDataURL('image/jpeg',.85)}
-    
+
     function tex(t,c){const k=document.createElement('canvas');k.width=k.height=128;const g=k.getContext('2d');g.fillStyle=c;g.fillRect(0,0,128,128);g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;
      if(t==='wood'){for(let x=0;x<128;x+=16){g.beginPath();g.moveTo(x,0);g.lineTo(x,128);g.stroke()}}
      else if(t==='brick'){for(let y=0;y<128;y+=16){g.beginPath();g.moveTo(0,y);g.lineTo(128,y);g.stroke();for(let x=(y/16%2)*16;x<128;x+=32){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+16);g.stroke()}}}
      else if(t==='stone'){for(let i=0;i<400;i++){g.fillStyle='rgba(0,0,0,'+Math.random()*.08+')';g.fillRect(Math.random()*128,Math.random()*128,3,3)}}
      return new THREE.CanvasTexture(k)}
     function applyWall(){const w=WALLS.find(x=>x.id===S.wall);wallMat.map=tex(w.t,w.c);wallMat.color.set(0xffffff);wallMat.needsUpdate=true}
-    
+
     function free(x,z,w,d,ex){return x>=0&&z>=0&&x+w<=GW&&z+d<=GD&&!S.rooms.some(o=>o!==ex&&x<o.x+o.w&&o.x<x+w&&z<o.z+o.d&&o.z<z+d)}
     function spot(w,d){let cx=GW/2,cz=GD/2;const n=S.rooms.length;if(n){cx=S.rooms.reduce((a,o)=>a+o.x+o.w/2,0)/n;cz=S.rooms.reduce((a,o)=>a+o.z+o.d/2,0)/n}
      let best=null,bd=1e9;for(let x=0;x<=GW-w;x++)for(let z=0;z<=GD-d;z++)if(free(x,z,w,d)){const q=(x+w/2-cx)**2+(z+d/2-cz)**2;if(q<bd){bd=q;best=[x,z]}}return best}
@@ -459,7 +549,7 @@
     function toast(t){const o=$('#toast');o.textContent=t;o.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>o.style.opacity=0,2800)}
     function loadPreset(id){const tok=++uid;S.rooms.forEach(r=>{r.gone=true;dead.push(r)});S.rooms=[];S.sel=null;
      (PRE[id]||PRE.oz).forEach((a,i)=>setTimeout(()=>{if(S.loaded===id&&inited)addRoom(a[0],a[1],a[2])},250+i*280));syncUI()}
-    
+
     function syncUI(){const r=S.sel,tot=S.rooms.reduce((a,o)=>a+o.w*o.d,0);
      $('#tArea').textContent=`Комнат: ${S.rooms.length}, общая площадь: ${tot} м²`;$('#tPrice').textContent='≈ '+fmt(price());
      $('#selT').textContent=r?TYPES[r.type].n+', '+r.w*r.d+' м²':'Выберите комнату на модели';
@@ -468,12 +558,12 @@
      const ch=(a,arr,cur)=>arr.map(i=>`<button class="chip" data-a="${a}:${i.id}" aria-pressed="${cur===i.id}">${i.n}<small>${i.p?'+ '+fmt(i.p)+'/м²':'входит в цену'}</small></button>`).join('');
      $('#oWall').innerHTML=ch('wall',WALLS,S.wall);$('#oFloor').innerHTML=ch('floor',FLOORS,S.floor);
      $('#oRoof').innerHTML=`<button class="chip" data-a="roof" aria-pressed="${S.roof}">Показать крышу<small>+ ${fmt(8000)}/м²</small></button>`}
-    
+
     const ndc=e=>{const b=el.getBoundingClientRect();return new THREE.Vector2((e.clientX-b.left)/b.width*2-1,-(e.clientY-b.top)/b.height*2+1)};
     function hit(e){ray.setFromCamera(ndc(e),cam);const t=[];S.rooms.forEach(r=>{t.push(r.fl);if(!TYPES[r.type].open)t.push(...r.ws)});const i=ray.intersectObjects(t,false)[0];return i?i.object.userData.r:null}
     function gpt(e){ray.setFromCamera(ndc(e),cam);const p=new THREE.Vector3();return ray.ray.intersectPlane(plane,p)||p}
     const d2=()=>{const a=[...P.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
-    
+
     function init(){
      el=$('#c3d');stage=$('#stage');R=new THREE.WebGLRenderer({canvas:el,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
      scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(45,1,.1,200);
@@ -521,7 +611,7 @@
     function render(){if(!inited){inited=true;init()}
      if(S.loaded!==S.model){S.loaded=S.model;loadPreset(S.model||'oz')}
      $('#cfgBox').hidden=false;syncUI()}
-    
+
     /* интерьер: расстановка мебели */
     const FLIST={sofa:{n:'Диван',w:2,d:.9,c:'#8a6a8f',ic:'🛋️'},armchair:{n:'Кресло',w:.8,d:.8,c:'#b98a5a',ic:'🪑'},tv:{n:'Телевизор',w:1.2,d:.15,c:'#2a2a2a',ic:'📺'},table:{n:'Стол',w:1.2,d:.8,c:'#a97c50',ic:'🍽️'},bookshelf:{n:'Стеллаж',w:1,d:.3,c:'#7a5a3a',ic:'📚'},bed:{n:'Кровать',w:1.6,d:2,c:'#c79a9a',ic:'🛏️'},wardrobe:{n:'Шкаф',w:1.2,d:.6,c:'#6b5843',ic:'🚪'},nightstand:{n:'Тумба',w:.5,d:.4,c:'#8a7052',ic:'🕯️'},desk:{n:'Письменный стол',w:1.2,d:.6,c:'#9c8158',ic:'💻'},kitchen:{n:'Кухня',w:2,d:.6,c:'#7d9490',ic:'🍳'},fridge:{n:'Холодильник',w:.7,d:.7,c:'#c9d2d3',ic:'🧊'},sink:{n:'Раковина',w:.6,d:.5,c:'#cfd8da',ic:'🚰'},toilet:{n:'Унитаз',w:.4,d:.6,c:'#e4e9ea',ic:'🚽'},bathtub:{n:'Ванна',w:1.7,d:.75,c:'#dfe6e7',ic:'🛁'}};
     const ROOM_FURN={liv:['sofa','armchair','tv','table','bookshelf'],bed:['bed','wardrobe','nightstand','desk'],kid:['bed','wardrobe','desk','bookshelf'],kit:['kitchen','fridge','table'],bath:['sink','toilet','bathtub'],off:['desk','bookshelf','armchair'],hall:['wardrobe'],wr:['wardrobe'],ter:['table','armchair']};
@@ -680,21 +770,185 @@
      drawInterior();if(Imode==='3d')syncScene3D()};
     $('#fDel').onclick=()=>{if(!Isel)return;Isel.dead=true;Isel=null;$('#furnSel').hidden=true;drawInterior()};
     $('#toChat2').onclick=()=>S.rooms.length?openChat('interior'):toast('Сначала соберите дом в конструкторе.');
-    
+
+    /* ===== Supabase: аккаунты, роли, диалоги ===== */
+    const cfg=window.APP_CONFIG||{};
+    const sb=(window.supabase&&cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABASE_URL+cfg.SUPABASE_ANON_KEY))?window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY):null;
+    const NOSB='Сервер аккаунтов не настроен: заполните config.js (см. README).';
+    let PROF=null,recovery=false,amode='in',gtt;
+    const isStaff=()=>!!PROF&&(PROF.role==='owner'||PROF.role==='designer');
+    const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function gtoast(t){const e=$('#gToast');e.textContent=t;e.style.opacity=1;clearTimeout(gtt);gtt=setTimeout(()=>e.style.opacity=0,3500)}
+    const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/,USER_RE=/^[a-z0-9_]{3,20}$/i;
+    const okName=n=>n.length>=3&&n.split(' ').length>=2;
+    const redirect=()=>location.origin+location.pathname;
+
+    async function loadProfile(){
+     if(!sb)return;
+     const{data:{session}}=await sb.auth.getSession();
+     if(!session){PROF=null;authUI();return}
+     const{data}=await sb.from('profiles').select('id,username,full_name,role').eq('id',session.user.id).maybeSingle();
+     PROF=data?{...data,email:session.user.email}:null;authUI();
+    }
+    function authUI(){const p=PROF;$('#authBtn').textContent=p?'👤 '+p.full_name:'Войти';$('#outBtn').hidden=!p;$('#staffBtn').hidden=!isStaff();
+     const n=document.querySelector('#lead [name=name]');if(p&&n&&!n.value)n.value=p.full_name}
+    async function signOut(){if(sb){await sb.removeAllChannels();await sb.auth.signOut()}PROF=null;CH.id=null;ST.id=null;authUI();go('home')}
+
+    /* окно входа / регистрации */
+    function amsg(t){const m=$('#aMsg');m.textContent=t;m.style.display=t?'block':'none'}
+    function setMode(m){amode=m;[...$('#authTabs').children].forEach(c=>c.setAttribute('aria-pressed',c.dataset.t===m));
+     $('#aLogin').hidden=m!=='in';$('#aName').hidden=m!=='up';$('#aUser').hidden=m!=='up';$('#aMail').hidden=m!=='up';$('#aForgot').hidden=m!=='in';
+     $('#authT').textContent=m==='in'?'Вход':'Регистрация';$('#aSubmit').textContent=m==='in'?'Войти':'Создать аккаунт';
+     $('#aPass').autocomplete=m==='in'?'current-password':'new-password';amsg(sb?'':NOSB)}
+    function openAuth(){setMode('in');$('#authForm').reset();$('#authModal').hidden=false;setTimeout(()=>$('#aLogin').focus(),30)}
+    function closeAuth(){$('#authModal').hidden=true}
+    async function emailFor(login){if(login.includes('@'))return login;const{data}=await sb.rpc('email_by_username',{u:login});return data||null}
+    $('#authBtn').onclick=()=>{PROF?go('profile'):openAuth()};
+    $('#outBtn').onclick=signOut;
+    $('#staffBtn').onclick=()=>go('staff');
+    $('#authX').onclick=closeAuth;
+    $('#authModal').addEventListener('click',e=>{if(e.target.id==='authModal')closeAuth()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#authModal').hidden)closeAuth()});
+    $('#authTabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setMode(b.dataset.t)});
+    $('#authForm').addEventListener('submit',async e=>{e.preventDefault();amsg('');if(!sb)return amsg(NOSB);
+     const pass=$('#aPass').value;if(pass.length<6)return amsg('Пароль должен быть не короче 6 символов.');
+     $('#aSubmit').disabled=true;
+     try{
+      if(amode==='up'){
+       const nm=$('#aName').value.trim().replace(/\s+/g,' '),un=$('#aUser').value.trim(),ml=$('#aMail').value.trim().toLowerCase();
+       if(!okName(nm))return amsg('Укажите имя и фамилию.');
+       if(!USER_RE.test(un))return amsg('Юзернейм: 3–20 символов, латиница, цифры и _.');
+       if(!EMAIL_RE.test(ml))return amsg('Введите корректную почту.');
+       const{data:taken,error:te}=await sb.rpc('username_taken',{u:un});
+       if(te)return amsg('Ошибка сервера. Попробуйте ещё раз.');
+       if(taken)return amsg('Такой юзернейм уже занят.');
+       const{data,error}=await sb.auth.signUp({email:ml,password:pass,options:{data:{username:un,full_name:nm},emailRedirectTo:redirect()}});
+       if(error)return amsg(/registered|already/i.test(error.message)?'Эта почта уже зарегистрирована.':error.message);
+       if(data.user&&data.user.identities&&data.user.identities.length===0)return amsg('Эта почта уже зарегистрирована.');
+       if(!data.session)return amsg('Мы отправили письмо: подтвердите почту по ссылке и войдите.');
+       closeAuth();
+      }else{
+       const lg=$('#aLogin').value.trim();if(!lg)return amsg('Введите почту или юзернейм.');
+       const email=await emailFor(lg);if(!email)return amsg('Неверный логин или пароль.');
+       const{error}=await sb.auth.signInWithPassword({email,password:pass});
+       if(error)return amsg(/confirm/i.test(error.message)?'Подтвердите почту по ссылке из письма.':'Неверный логин или пароль.');
+       closeAuth();
+      }
+     }catch(err){amsg('Не удалось связаться с сервером. Попробуйте ещё раз.')}
+     finally{$('#aSubmit').disabled=false}});
+    $('#aForgot').onclick=async()=>{if(!sb)return amsg(NOSB);const lg=$('#aLogin').value.trim();if(!lg)return amsg('Введите почту или юзернейм в поле выше.');
+     const email=await emailFor(lg);if(email)await sb.auth.resetPasswordForEmail(email,{redirectTo:redirect()});
+     amsg('Если такой аккаунт есть, мы отправили письмо со ссылкой для смены пароля.')};
+    if(sb)sb.auth.onAuthStateChange(ev=>{
+     if(ev==='PASSWORD_RECOVERY'){recovery=true;setTimeout(async()=>{await loadProfile();go('profile')},0)}
+     else if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(ev)){setTimeout(loadProfile,0)}});
+
+    /* личный кабинет */
+    function pmsg(t){const m=$('#pMsg');m.textContent=t;m.style.display=t?'block':'none'}
+    function renderProfile(){if(!PROF){go('home');openAuth();return}
+     $('#pName').value=PROF.full_name;$('#pUser').value=PROF.username;$('#pMail').value=PROF.email;$('#pOld').value='';$('#pNew').value='';
+     $('#pOld').closest('label').hidden=recovery;pmsg(recovery?'Введите новый пароль и нажмите «Сохранить».':'')}
+    $('#pForm').addEventListener('submit',async e=>{e.preventDefault();if(!sb||!PROF)return;
+     const nm=$('#pName').value.trim().replace(/\s+/g,' '),un=$('#pUser').value.trim(),ml=$('#pMail').value.trim().toLowerCase(),old=$('#pOld').value,np=$('#pNew').value;
+     if(recovery){if(np.length<6)return pmsg('Новый пароль должен быть не короче 6 символов.');
+      const{error}=await sb.auth.updateUser({password:np});if(error)return pmsg(error.message);
+      recovery=false;$('#pOld').closest('label').hidden=false;$('#pNew').value='';return pmsg('Пароль изменён.')}
+     if(!okName(nm))return pmsg('Укажите имя и фамилию.');
+     if(!USER_RE.test(un))return pmsg('Юзернейм: 3–20 символов, латиница, цифры и _.');
+     if(!EMAIL_RE.test(ml))return pmsg('Введите корректную почту.');
+     if(np&&np.length<6)return pmsg('Новый пароль должен быть не короче 6 символов.');
+     const{error:ae}=await sb.auth.signInWithPassword({email:PROF.email,password:old});
+     if(ae)return pmsg('Для сохранения введите текущий пароль.');
+     const{error:pe}=await sb.from('profiles').update({username:un,full_name:nm}).eq('id',PROF.id);
+     if(pe)return pmsg(pe.code==='23505'?'Такой юзернейм уже занят.':'Не удалось сохранить: '+pe.message);
+     let note='Данные сохранены.';
+     if(np){const{error}=await sb.auth.updateUser({password:np});if(error)return pmsg(error.message);note+=' Пароль изменён.'}
+     if(ml!==PROF.email){const{error}=await sb.auth.updateUser({email:ml},{emailRedirectTo:redirect()});if(error)return pmsg(error.message);note+=' Подтвердите новый адрес по письму.'}
+     await loadProfile();$('#pOld').value='';$('#pNew').value='';pmsg(note)});
+    $('#pOut').onclick=signOut;
+    $('#pDel').onclick=async()=>{if(!sb||!PROF)return;
+     const{error:ae}=await sb.auth.signInWithPassword({email:PROF.email,password:$('#pOld').value});
+     if(ae)return pmsg('Для удаления введите текущий пароль.');
+     const{error}=await sb.rpc('delete_my_account');if(error)return pmsg(error.message);
+     await signOut()};
+
     /* чат с дизайнером */
     function summary(){const furnTxt=S.rooms.filter(r=>r.furn&&r.furn.length).map(r=>`  ${TYPES[r.type].n}: `+r.furn.map(f=>f.n).join(', ')).join('\n');
      return 'Моя конфигурация:\n'+S.rooms.map(r=>`• ${TYPES[r.type].n} ${r.w}×${r.d} м = ${r.w*r.d} м², пол: ${FLOORS.find(f=>f.id===(r.floorId||S.floor)).n}`).join('\n')+`\nСтены: ${WALLS.find(x=>x.id===S.wall).n}\nКрыша: ${S.roof?'да':'нет'}\nИтого: ${fmt(price())}`+(furnTxt?`\nМебель:\n${furnTxt}`:'')}
-    function add(cls,t){const d=document.createElement('div');d.className='msg '+cls;d.textContent=t;$('#chat').appendChild(d);$('#chat').scrollTop=1e5}
-    const replies=['Поняла вас. Внесу это в планировку и пришлю схему в течение дня.','Хорошее решение, так дом будет удобнее. Пересчитаю стоимость и вернусь с ответом.','Это возможно. Уточню у инженеров, не потребуется ли усиление фундамента.'];
-    let ri=0,chatFrom='config';
-    function openChat(from){chatFrom=from||'config';$('#view-home').hidden=true;$('#view-config').hidden=true;$('#view-interior').hidden=true;$('#view-chat').hidden=false;
-     $('#chat').innerHTML='';$('#finOk').style.display='none';
-     add('them','Здравствуйте! Меня зовут Мария, я ваш дизайнер. Вижу вашу модель.');add('me',summary());
-     setTimeout(()=>add('them','Что хотели бы изменить в планировке или отделке?'),700);window.scrollTo(0,0)}
-    $('#toChat').onclick=()=>S.rooms.length?openChat('config'):toast('Добавьте хотя бы одну комнату.');
-    $('#sendForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#msgIn').value.trim();if(!v)return;add('me',v);$('#msgIn').value='';setTimeout(()=>add('them',replies[ri++%replies.length]),900)});
+
+    const CH={id:null,seen:new Set(),ch:null};
+    let chatFrom='config';
+    function renderMsg(box,m,seen){if(seen.has(m.id))return;seen.add(m.id);
+     const mine=PROF&&m.sender_id===PROF.id,d=document.createElement('div');d.className='msg '+(mine?'me':'them');
+     d.textContent=(mine?'':(m.sender_name||'Команда')+'\n')+m.body;box.appendChild(d);box.scrollTop=1e5}
+    async function postMsg(state,box,body){
+     const{data,error}=await sb.from('messages').insert({conversation_id:state.id,body}).select().single();
+     if(error){gtoast('Не отправлено: '+error.message);return false}
+     renderMsg(box,data,state.seen);return true}
+    async function openChat(from){chatFrom=from||'config';
+     if(!sb){gtoast(NOSB);return}
+     if(!PROF){openAuth();amsg('Войдите или зарегистрируйтесь, чтобы написать дизайнеру.');return}
+     ['home','config','interior','profile','staff'].forEach(v=>$('#view-'+v).hidden=true);$('#view-chat').hidden=false;window.scrollTo(0,0);
+     $('#chat').innerHTML='';$('#finOk').style.display='none';CH.seen=new Set();
+     let{data:c}=await sb.from('conversations').select('id,status').eq('client_id',PROF.id).neq('status','closed').order('created_at',{ascending:false}).limit(1).maybeSingle();
+     let fresh=false;
+     if(!c){const r=await sb.from('conversations').insert({client_id:PROF.id}).select('id,status').single();
+      if(r.error){gtoast('Не удалось открыть диалог');return}c=r.data;fresh=true}
+     CH.id=c.id;
+     const{data:msgs}=await sb.from('messages').select('*').eq('conversation_id',CH.id).order('created_at');
+     (msgs||[]).forEach(m=>renderMsg($('#chat'),m,CH.seen));
+     if(fresh&&S.rooms.length)await postMsg(CH,$('#chat'),summary());
+     if(CH.ch)sb.removeChannel(CH.ch);
+     CH.ch=sb.channel('c-'+CH.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'conversation_id=eq.'+CH.id},p=>renderMsg($('#chat'),p.new,CH.seen)).subscribe()}
+    $('#toChat').onclick=()=>S.rooms.length?openChat('config'):gtoast('Добавьте хотя бы одну комнату.');
+    $('#sendForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#msgIn').value.trim();if(!v||!CH.id)return;$('#msgIn').value='';postMsg(CH,$('#chat'),v)});
+    $('#sendCfg').onclick=()=>{if(CH.id&&S.rooms.length)postMsg(CH,$('#chat'),summary());else gtoast('Сначала соберите дом в конструкторе.')};
     $('#editCfg').onclick=()=>go(chatFrom);
-    $('#finish').onclick=()=>{const o=$('#finOk');o.textContent=`Проект согласован на сумму ${fmt(price())}. Менеджер свяжется с вами для подписания договора.`;o.style.display='block'};
+    $('#finish').onclick=async()=>{if(!CH.id)return;
+     const{error}=await sb.from('conversations').update({status:'approved'}).eq('id',CH.id);if(error)return gtoast('Ошибка: '+error.message);
+     await postMsg(CH,$('#chat'),'✅ Проект согласован на сумму '+fmt(price()));
+     const o=$('#finOk');o.textContent='Проект согласован. Менеджер свяжется с вами для подписания договора.';o.style.display='block'};
+
+    /* панель команды (дизайнеры и владелец) */
+    const ST={id:null,seen:new Set(),ch:null,list:[],designers:[],t:null};
+    const stLabel=s=>({open:'открыт',approved:'согласован',closed:'закрыт'}[s]||s);
+    async function renderStaff(){if(!sb||!isStaff()){go('home');return}
+     $('#teamBox').hidden=PROF.role!=='owner';await refreshStaff();
+     if(ST.ch)sb.removeChannel(ST.ch);
+     const later=()=>{clearTimeout(ST.t);ST.t=setTimeout(refreshStaff,400)};
+     ST.ch=sb.channel('staff')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{if(p.new.conversation_id===ST.id)renderMsg($('#stChat'),p.new,ST.seen);later()})
+      .on('postgres_changes',{event:'*',schema:'public',table:'conversations'},later).subscribe()}
+    async function refreshStaff(){
+     if(PROF&&PROF.role==='owner')await refreshTeam();
+     const{data}=await sb.from('conversations').select('id,status,designer_id,client:profiles!conversations_client_id_fkey(full_name,username),designer:profiles!conversations_designer_id_fkey(full_name)').order('updated_at',{ascending:false});
+     ST.list=data||[];
+     $('#convList').innerHTML=ST.list.length?ST.list.map(c=>`<button class="chip" data-cid="${c.id}" aria-pressed="${c.id===ST.id}" style="width:100%;margin-bottom:8px">${esc(c.client&&c.client.full_name||'Клиент')}<small>@${esc(c.client&&c.client.username||'')} · ${c.designer?esc(c.designer.full_name):'без дизайнера'} · ${stLabel(c.status)}</small></button>`).join(''):'<p class="who">Диалогов пока нет.</p>'}
+    async function refreshTeam(){
+     const{data}=await sb.from('profiles').select('id,username,full_name').eq('role','designer').order('full_name');ST.designers=data||[];
+     $('#teamList').innerHTML=ST.designers.length?ST.designers.map(d=>`<div class="send" style="margin-bottom:6px;align-items:center"><span style="flex:1">${esc(d.full_name)} <span class="who">@${esc(d.username)}</span></span><button class="chip" data-unrole="${d.id}">Снять</button></div>`).join(''):'<p class="who">Дизайнеров пока нет.</p>'}
+    $('#teamAdd').addEventListener('submit',async e=>{e.preventDefault();const u=$('#teamUser').value.trim().replace(/^@/,'');if(!u||!sb)return;
+     const{data}=await sb.from('profiles').select('id,role').ilike('username',u.replace(/[\\_%]/g,'\\$&')).maybeSingle();
+     if(!data)return gtoast('Пользователь не найден');
+     const{error}=await sb.rpc('set_role',{target:data.id,new_role:'designer'});
+     if(error)return gtoast('Ошибка: '+error.message);$('#teamUser').value='';gtoast('Дизайнер назначен');refreshStaff()});
+    $('#teamList').addEventListener('click',async e=>{const b=e.target.closest('[data-unrole]');if(!b)return;
+     const{error}=await sb.rpc('set_role',{target:b.dataset.unrole,new_role:'client'});
+     gtoast(error?'Ошибка: '+error.message:'Роль снята');refreshStaff()});
+    function renderAssign(c){const box=$('#stAssign');box.hidden=!PROF||PROF.role!=='owner';if(box.hidden)return;
+     box.innerHTML=`<div class="who" style="margin-bottom:6px">Дизайнер диалога</div><div class="send"><select id="asSel" aria-label="Дизайнер"><option value="">— не назначен —</option>${ST.designers.map(d=>`<option value="${d.id}"${d.id===c.designer_id?' selected':''}>${esc(d.full_name)} (@${esc(d.username)})</option>`).join('')}</select><button class="btn" id="asBtn" type="button">Сохранить</button></div>`;
+     $('#asBtn').onclick=async()=>{const{error}=await sb.from('conversations').update({designer_id:$('#asSel').value||null}).eq('id',c.id);
+      gtoast(error?'Ошибка: '+error.message:'Доступ сохранён');refreshStaff()}}
+    $('#convList').addEventListener('click',async e=>{const b=e.target.closest('[data-cid]');if(!b)return;
+     ST.id=b.dataset.cid;ST.seen=new Set();const c=ST.list.find(x=>x.id===ST.id);if(!c)return;
+     [...$('#convList').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
+     $('#stTitle').textContent=(c.client&&c.client.full_name||'Клиент')+' (@'+(c.client&&c.client.username||'')+')';
+     $('#stChat').innerHTML='';$('#stForm').hidden=false;renderAssign(c);
+     const{data}=await sb.from('messages').select('*').eq('conversation_id',ST.id).order('created_at');
+     (data||[]).forEach(m=>renderMsg($('#stChat'),m,ST.seen))});
+    $('#stForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#stIn').value.trim();if(!v||!ST.id)return;$('#stIn').value='';postMsg(ST,$('#stChat'),v)});
+
+    authUI();loadProfile();
 </script>
 </body>
 </html>
