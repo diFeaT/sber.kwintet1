@@ -359,9 +359,9 @@ select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid 
 </div></div>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
+<script src="vendor/supabase.js"></script>
+<script>window.supabase||document.write('<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"><\/script>')</script>
 <script>
 const $=s=>document.querySelector(s), fmt=n=>n.toLocaleString('ru-RU')+' ₽';
 const MODELS=[
@@ -386,7 +386,7 @@ function price(){const m=mod(S.model);return m.price+fac(S.facade).p+ROOFS.find(
 /* навигация */
 function go(v,anchor){
  $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-profile').hidden=v!=='profile';$('#view-staff').hidden=v!=='staff';$('#view-calc').hidden=v!=='calc';$('#view-chat').hidden=true;
- if(v==='config'){render()}
+ if(v==='config'){withThree(render)}
  if(v==='interior'){renderInterior()}
  if(v==='profile'){renderProfile()}
  if(v==='staff'){renderStaff()}
@@ -404,14 +404,27 @@ $('#projGrid').innerHTML=MODELS.map((m,i)=>`<article class="card proj"><div clas
 $('#lead').addEventListener('submit',e=>{e.preventDefault();submitLead(e.target)});
 
 /* 3D-конструктор */
-const GW=16,GD=12,H=2.7,BOX=new THREE.BoxGeometry(1,1,1),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+/* three.js (3D-конструктор) подгружается только когда нужен: сначала vendor/three.min.js, затем CDN.
+   Если он недоступен в сети пользователя, остальной сайт (вход, кабинет, чат) продолжает работать. */
+const THREEMSG='Не загрузился 3D-модуль (скрипт three.js недоступен в вашей сети). Остальные разделы сайта работают. Обновите страницу или попробуйте другую сеть.';
+let threeP=null;
+function ensureThree(){
+ if(window.THREE)return Promise.resolve(true);
+ if(threeP)return threeP;
+ const load=src=>new Promise(res=>{const el=document.createElement('script');el.src=src;el.onload=()=>res(!!window.THREE);el.onerror=()=>res(false);document.head.appendChild(el);setTimeout(()=>res(!!window.THREE),20000)});
+ threeP=load('vendor/three.min.js').then(ok=>ok||load('https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js')).then(ok=>{if(!ok)threeP=null;return ok});
+ return threeP}
+function withThree(fn){if(window.THREE)return fn();gtoast('Загружаем 3D-модуль…');ensureThree().then(ok=>ok?fn():gtoast(THREEMSG))}
+let BOX=null;
+const GW=16,GD=12,H=2.7,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const TYPES={liv:{n:'Гостиная',w:5,d:4},bed:{n:'Спальня',w:4,d:3},kit:{n:'Кухня',w:3,d:3,wet:1},bath:{n:'Ванная',w:2,d:2,wet:1},kid:{n:'Детская',w:3,d:3},off:{n:'Кабинет',w:3,d:3},hall:{n:'Прихожая',w:2,d:2},wr:{n:'Гардеробная',w:2,d:2},ter:{n:'Терраса',w:4,d:2,open:1}};
 const WALLS=[{id:'wood',n:'Лиственница',c:'#b9834a',p:0,t:'wood'},{id:'dark',n:'Графит',c:'#3f484c',p:6000,t:'plain'},{id:'stone',n:'Светлый камень',c:'#d9d6cc',p:9000,t:'stone'},{id:'brick',n:'Кирпич',c:'#a4553d',p:12000,t:'brick'}];
 const FLOORS=[{id:'oak',n:'Дуб',c:'#b58b57',p:4000},{id:'tile',n:'Плитка',c:'#cfd3d6',p:3000},{id:'conc',n:'Бетон',c:'#8d9296',p:1500},{id:'nut',n:'Орех',c:'#5b4030',p:7000}];
 const PRE={les:[['liv',5,4],['kit',3,3],['bed',4,3],['bath',2,2],['hall',2,2]],oz:[['liv',6,4],['kit',4,3],['bed',4,3],['kid',3,3],['bath',3,2],['hall',2,2],['ter',4,2]],sem:[['liv',6,5],['kit',4,4],['bed',4,4],['kid',4,3],['off',3,3],['bath',3,2],['hall',3,2],['wr',2,2],['ter',5,2]]};
 Object.assign(S,{rooms:[],wall:'wood',floor:'oak',roof:true,sel:null,loaded:null});
 let R,cam,scene,wallMat,roofMat,selBox,el,stage,inited=false,uid=0,dead=[],drag=null,mode=null,pd=0,lw=0,lh=0,tt;
-const ray=new THREE.Raycaster(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0),cv={th:.6,ph:1,d:24,gth:.6,gph:1,gd:24},P=new Map();
+let ray=null,plane=null;
+const cv={th:.6,ph:1,d:24,gth:.6,gph:1,gd:24},P=new Map();
 
 function forest(){const c=document.createElement('canvas');c.width=1400;c.height=800;const g=c.getContext('2d');
  const s=g.createLinearGradient(0,0,0,800);s.addColorStop(0,'#d5e4e0');s.addColorStop(.5,'#b3cbbf');s.addColorStop(1,'#6b8c74');g.fillStyle=s;g.fillRect(0,0,1400,800);
@@ -480,6 +493,7 @@ function gpt(e){ray.setFromCamera(ndc(e),cam);const p=new THREE.Vector3();return
 const d2=()=>{const a=[...P.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
 
 function init(){
+ BOX=new THREE.BoxGeometry(1,1,1);ray=new THREE.Raycaster();plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
  el=$('#c3d');stage=$('#stage');R=new THREE.WebGLRenderer({canvas:el,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
  scene=new THREE.Scene();cam=new THREE.PerspectiveCamera(45,1,.1,200);
  scene.add(new THREE.HemisphereLight(0xffffff,0x557766,.95));const dl=new THREE.DirectionalLight(0xffffff,.9);dl.position.set(8,14,6);scene.add(dl);
@@ -539,7 +553,7 @@ $('#iModeSw').addEventListener('click',e=>{const b=e.target.closest('[data-im]')
  [...$('#iModeSw').children].forEach(c=>c.setAttribute('aria-pressed',c===b));
  $('#c2d').hidden=Imode!=='plan';$('#c3di').hidden=Imode!=='3d';$('#furnSel').hidden=Imode!=='plan'||!Isel;
  $('#intHint').textContent=Imode==='plan'?'Перетаскивайте мебель пальцем или мышью.':'Вращайте вид пальцем или мышью, сближайте для приближения.';
- if(Imode==='3d'){initInterior3D();lastRoomKey='';syncScene3D()}});
+ if(Imode==='3d')withThree(()=>{initInterior3D();lastRoomKey='';syncScene3D()});});
 function renderInterior(){
  const rooms=S.rooms.filter(r=>!r.gone);$('#noRooms').hidden=!!rooms.length;$('#intBody').hidden=!rooms.length;
  if(!rooms.length)return;
@@ -695,7 +709,7 @@ const cfgOk=!!(cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABA
 const fetchT=(u,o)=>{o=o||{};const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);return fetch(u,{...o,signal:o.signal||c.signal}).finally(()=>clearTimeout(t))};
 const sb=(window.supabase&&cfgOk)?window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY,{global:{fetch:fetchT}}):null;
 const NOSB=(cfgOk&&!window.supabase)
- ?'Не загрузилась библиотека входа (скрипт с cdn.jsdelivr.net). Возможно, он недоступен в вашей сети. Обновите страницу или попробуйте другую сеть.'
+ ?'Не загрузилась библиотека входа. Возможно, её скрипт недоступен в вашей сети. Обновите страницу или попробуйте другую сеть.'
  :'Сервер аккаунтов не настроен: заполните config.js (см. README).';
 const NETMSG='Не удалось связаться с сервером аккаунтов. Проверьте интернет. Если другие сайты открываются, возможно, ваш провайдер ограничивает доступ к сервису: попробуйте другую сеть (например, мобильную) или VPN.';
 const isNetErr=e=>!!e&&(e.status===0||e.name==='AuthRetryableFetchError'||/fetch|network|load failed|abort|timeout|ECONN/i.test(String(e.message||'')));
@@ -836,9 +850,11 @@ function calcHTML(c){
 
 /* ===== сохранение и загрузка проектов в конструктор ===== */
 let LOADTOK=0;
-function loadProject(c,meta,preview){
+async function loadProject(c,meta,preview){
  if(!c||!Array.isArray(c.rooms))return gtoast('Проект повреждён и не может быть открыт.');
  const tok=++LOADTOK;
+ if(!(await ensureThree())){gtoast(THREEMSG);return}
+ if(tok!==LOADTOK)return;
  S.model='proj';S.loaded='proj';go('config');
  S.rooms.forEach(r=>{r.gone=true;dead.push(r)});S.rooms=[];S.sel=null;Iroom=null;
  if(WALLS.some(w=>w.id===c.wall)){S.wall=c.wall;applyWall()}
@@ -890,16 +906,19 @@ $('#pDel').onclick=async()=>{if(!sb||!PROF)return;
 
 /* мои проекты */
 async function loadMyProjects(){const box=$('#myProjects');box.innerHTML='<p class="who">Загрузка…</p>';
- const{data,error}=await sb.from('projects').select('id,title,status,price,submitted_at,review_note,approved_at,config,calc').eq('client_id',PROF.id).order('submitted_at',{ascending:false});
+ const{data,error}=await sb.from('projects').select('id,title,status,price,submitted_at,review_note,approved_at').eq('client_id',PROF.id).order('submitted_at',{ascending:false});
  if(error){box.innerHTML='<p class="who">Не удалось загрузить проекты.</p>';return}
  MY=data||[];
- box.innerHTML=MY.length?MY.map(p=>`<div class="card" data-pid="${p.id}" style="margin-bottom:12px"><div class="send" style="align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">${esc(p.title)}</h3><span class="badge b-${p.status}">${PST[p.status]||p.status}</span></div><p class="who" style="margin:6px 0">Отправлен ${esc(fmtD(p.submitted_at))} · модули ≈ ${fmt(+p.price)}${p.approved_at?' · согласован '+esc(fmtD(p.approved_at)):''}</p>${p.review_note?`<p style="margin:6px 0"><b>Комментарий дизайнера:</b> ${esc(p.review_note)}</p>`:''}<div class="row"><button class="btn ghost" data-act="open">Открыть в конструкторе</button>${(p.status==='approved'||p.status==='paid')&&p.calc?'<button class="btn" data-act="calc">Расчёт и стоимость</button>':''}<button class="btn ghost" data-act="chat">Написать дизайнеру</button>${p.status!=='paid'?'<button class="btn ghost" data-act="del" style="border-color:#b3261e;color:#b3261e">Удалить</button>':''}</div></div>`).join(''):'<div class="card"><p style="margin:0">Вы ещё не отправляли проекты на согласование. Соберите дом в конструкторе и нажмите «Отправить дизайнеру».</p><button class="btn" style="margin-top:12px" data-go="config">Открыть конструктор</button></div>'}
-$('#myProjects').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;
+ box.innerHTML=MY.length?MY.map(p=>`<div class="card" data-pid="${p.id}" style="margin-bottom:12px"><div class="send" style="align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">${esc(p.title)}</h3><span class="badge b-${p.status}">${PST[p.status]||p.status}</span></div><p class="who" style="margin:6px 0">Отправлен ${esc(fmtD(p.submitted_at))} · модули ≈ ${fmt(+p.price)}${p.approved_at?' · согласован '+esc(fmtD(p.approved_at)):''}</p>${p.review_note?`<p style="margin:6px 0"><b>Комментарий дизайнера:</b> ${esc(p.review_note)}</p>`:''}<div class="row"><button class="btn ghost" data-act="open">Открыть в конструкторе</button>${(p.status==='approved'||p.status==='paid')?'<button class="btn" data-act="calc">Расчёт и стоимость</button>':''}<button class="btn ghost" data-act="chat">Написать дизайнеру</button>${p.status!=='paid'?'<button class="btn ghost" data-act="del" style="border-color:#b3261e;color:#b3261e">Удалить</button>':''}</div></div>`).join(''):'<div class="card"><p style="margin:0">Вы ещё не отправляли проекты на согласование. Соберите дом в конструкторе и нажмите «Отправить дизайнеру».</p><button class="btn" style="margin-top:12px" data-go="config">Открыть конструктор</button></div>'}
+$('#myProjects').addEventListener('click',async e=>{const b=e.target.closest('[data-act]');if(!b)return;
  const card=b.closest('[data-pid]'),p=card&&MY.find(x=>x.id===card.dataset.pid);if(!p)return;
- if(b.dataset.act==='open')loadProject(p.config,{id:p.id,title:p.title,status:p.status});
- else if(b.dataset.act==='calc')showCalc(p);
- else if(b.dataset.act==='chat')openChat('profile');
- else if(b.dataset.act==='del')deleteProject(p)});
+ const act=b.dataset.act;
+ if(act==='open'||act==='calc'){const col=act==='open'?'config':'calc';b.disabled=true;
+  const{data,error}=await sb.from('projects').select(col).eq('id',p.id).single();b.disabled=false;
+  if(error||!data)return gtoast('Не удалось загрузить данные проекта. Проверьте соединение.');
+  if(act==='open')loadProject(data.config,{id:p.id,title:p.title,status:p.status});else showCalc({...p,calc:data.calc})}
+ else if(act==='chat')openChat('profile');
+ else if(act==='del')deleteProject(p)});
 async function deleteProject(p){
  if(!confirm('Удалить проект «'+p.title+'»? Это действие нельзя отменить.'+(p.status==='approved'?' Проект уже согласован, расчёт будет потерян.':'')))return;
  const{error}=await sb.rpc('delete_project',{p_id:p.id});
@@ -1139,6 +1158,41 @@ $('#bookList').addEventListener('click',async e=>{const b=e.target.closest('[dat
  if(a==='cancel'&&!confirm('Отменить запись клиента?'))return;
  const{error}=await sb.from('bookings').update(patch).eq('id',b.dataset.id);
  gtoast(error?'Ошибка: '+error.message:'Сохранено');refreshStaff()});
+
+/* диагностика связи: откройте сайт с добавкой ?diag=1 к адресу */
+async function runDiag(){
+ const box=document.createElement('div');
+ box.style.cssText='position:fixed;inset:10px;z-index:100;overflow:auto;background:#10201a;color:#e9efeb;padding:16px;border-radius:12px;font:14px/1.5 monospace;white-space:pre-wrap';
+ document.body.appendChild(box);
+ const lines=[],bad=[],out=()=>{box.textContent=lines.join('\n')};
+ const add=(ok,name,detail)=>{if(!ok)bad.push(name);lines.push((ok?'OK      ':'ОШИБКА ')+name+(detail?' — '+detail:''));out()};
+ const timed=async(name,fn)=>{const t=performance.now();
+  try{const d=await Promise.race([fn(),new Promise((_,rej)=>setTimeout(()=>rej(new Error('нет ответа за 10 с')),10000))]);add(true,name,d+', '+Math.round(performance.now()-t)+' мс')}
+  catch(e){add(false,name,(e&&e.message||String(e))+', '+Math.round(performance.now()-t)+' мс')}};
+ lines.push('ДИАГНОСТИКА САЙТА. Сделайте скриншот этого окна и пришлите.','');
+ lines.push('Страница: '+location.origin+location.pathname);
+ lines.push('Браузер: '+navigator.userAgent);
+ lines.push('Соединение https: '+(window.isSecureContext?'да':'нет'),'');out();
+ add(cfgOk,'config.js заполнен');
+ add(!!window.supabase,'Библиотека входа загружена');
+ await timed('3D-модуль three.js загружается',async()=>{if(!(await ensureThree()))throw new Error('не загрузился');return 'загружен'});
+ if(cfgOk){
+  const base=cfg.SUPABASE_URL.replace(/\/$/,''),h={apikey:cfg.SUPABASE_ANON_KEY},j={...h,'Content-Type':'application/json'};
+  await timed('Сервер аккаунтов, маленький ответ',async()=>{const r=await fetch(base+'/auth/v1/health',{headers:h});return 'HTTP '+r.status});
+  await timed('База данных, запрос функции',async()=>{const r=await fetch(base+'/rest/v1/rpc/username_taken',{method:'POST',headers:j,body:JSON.stringify({u:'diag_probe_user'})});return 'HTTP '+r.status});
+  await timed('Вход, проверка связи (неверные данные: это нормально)',async()=>{const r=await fetch(base+'/auth/v1/token?grant_type=password',{method:'POST',headers:j,body:JSON.stringify({email:'diag@example.invalid',password:'x'})});return 'HTTP '+r.status});
+  await timed('Крупный ответ сервера (проверка лимита 16 КБ)',async()=>{const r=await fetch(base+'/rest/v1/',{headers:h});const t=await r.text();return 'HTTP '+r.status+', получено '+t.length+' символов'});
+  await timed('Чат в реальном времени (WebSocket)',()=>new Promise((res,rej)=>{let w;try{w=new WebSocket(base.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+encodeURIComponent(cfg.SUPABASE_ANON_KEY)+'&vsn=1.0.0')}catch(e){return rej(e)}
+   w.onopen=()=>{w.close();res('соединение установлено')};w.onerror=()=>rej(new Error('соединение не установилось'))}))}
+ lines.push('');const has=n=>bad.some(b=>b.includes(n));
+ if(!bad.length)lines.push('ИТОГ: связь в порядке. Если вход всё равно не работает, пришлите текст сообщения под формой входа.');
+ else{lines.push('ИТОГ:');
+  if(has('Библиотека входа'))lines.push('• Не загрузилась библиотека входа. Положите файл vendor/supabase.js в репозиторий (см. README).');
+  if(has('three.js'))lines.push('• Не грузится 3D-модуль: конструктор не откроется. Положите файл vendor/three.min.js в репозиторий (см. README).');
+  if(has('Сервер аккаунтов')||has('База данных')||has('Вход,')||has('Крупный ответ'))lines.push('• Запросы к серверу Supabase не проходят или обрываются: вероятно, ограничение провайдера. Нужен прокси или другой хостинг сервера (см. README).');
+  if(has('Чат в реальном'))lines.push('• Чат в реальном времени не подключается; вход и проекты при этом могут работать.')}
+ out()}
+if(/[?&]diag=1/.test(location.search||''))runDiag();
 
 authUI();loadProfile();
 </script>
