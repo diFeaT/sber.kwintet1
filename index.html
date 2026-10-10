@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+ <html lang="ru">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -98,6 +98,18 @@
         .staff .chip small{white-space:normal}
         #gToast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:10px;z-index:60;opacity:0;transition:opacity .25s;max-width:90vw;pointer-events:none}
         @media(max-width:800px){.staff{grid-template-columns:1fr}}
+        .tw{overflow-x:auto;margin-bottom:12px}
+        .tbl{width:100%;border-collapse:collapse}
+        .tbl th,.tbl td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+        .tbl .n{text-align:right;white-space:nowrap}
+        .tbl tr.tot td{border-top:2px solid var(--pine);border-bottom:0;padding-top:12px}
+        .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.85rem;font-weight:700;color:var(--ink);border:1px solid var(--line)}
+        .b-submitted{background:color-mix(in srgb,var(--larch) 28%,var(--surface))}
+        .b-revision{background:color-mix(in srgb,#c0392b 24%,var(--surface))}
+        .b-approved{background:color-mix(in srgb,#2e8b57 26%,var(--surface))}
+        .b-paid{background:color-mix(in srgb,#2f6fdb 26%,var(--surface))}
+        .chip:disabled{opacity:.45;cursor:not-allowed}
+        @media print{header,#gToast,.row,.modal,#calcBack{display:none!important}body{background:#fff;color:#000}}
     </style>
 </head>
 <body>
@@ -227,12 +239,14 @@
 
         <section id="contact" style="padding-top:20px">
             <div class="wrap">
-               <h2>Получить консультацию</h2>
-                <p>Оставьте контактные данные, и менеджер свяжется с вами в течение 15 минут, в рабочее время.</p>
+                <h2>Получить консультацию</h2>
+                <p>Оставьте телефон, и менеджер перезвонит в течение 15 минут в рабочее время.</p>
                 <form class="lead" id="lead">
                     <input required name="name" placeholder="Ваше имя" aria-label="Имя">
-                    <input required name="phone" type="tel" placeholder="Телефон/Почта" aria-label="Контактные данные">
+                    <input required name="phone" type="tel" placeholder="Телефон" aria-label="Телефон">
                     <input required name="name" placeholder="Тема обращения" aria-label="Ваша проблема">
+                    <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true"
+                           style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
                     <button class="btn" type="submit">Отправить обращение</button>
                     <div class="ok" id="leadOk" role="status"></div>
                 </form>
@@ -266,6 +280,8 @@
                     <div class="card">
                         <div id="tArea" class="who"></div>
                         <div class="total" id="tPrice"></div>
+                        <p class="who" style="margin:4px 0 0">Цена модулей. Фундамент и мебель считаем при
+                            согласовании.</p>
                         <button class="btn" id="toChat" style="width:100%;margin-top:10px">Отправить дизайнеру</button>
                     </div>
                     <div class="card"><h3>Добавить комнату</h3>
@@ -365,60 +381,171 @@
                 <button class="btn" type="submit">Отправить</button>
             </form>
             <div class="row" style="margin-top:16px">
-                <button class="btn ghost" id="editCfg">Вернуться к модели</button>
-                <button class="btn ghost" id="sendCfg">Отправить конфигурацию</button>
-                <button class="btn" id="finish">Согласовать проект</button>
+                <button class="btn ghost" id="editCfg">Назад</button>
+                <button class="btn" id="sendCfg">Отправить проект на согласование</button>
+                <button class="btn ghost" id="chatMine">Мои проекты и записи</button>
             </div>
-            <div class="ok" id="finOk" role="status" style="margin-top:14px"></div>
         </div>
     </div>
     <div id="view-profile" hidden>
-        <div class="wrap" style="max-width:640px;padding-top:28px;padding-bottom:64px">
+        <div class="wrap" style="max-width:860px;padding-top:28px;padding-bottom:64px">
             <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Личный кабинет</h1>
-            <form id="pForm" class="lead" style="max-width:none" novalidate>
-                <label class="fld">Имя и Фамилия<input id="pName" autocomplete="name"></label>
-                <label class="fld">Юзернейм<input id="pUser" autocomplete="username"></label>
-                <label class="fld">Почта<input id="pMail" type="email" autocomplete="email"></label>
-                <label class="fld">Новый пароль<input id="pNew" type="password" autocomplete="new-password"
-                                                      placeholder="Оставьте пустым, если не меняете"></label>
-                <label class="fld">Текущий пароль (нужен для сохранения и удаления)<input id="pOld" type="password"
-                                                                                          autocomplete="current-password"></label>
-                <button class="btn" type="submit">Сохранить</button>
-                <div class="ok" id="pMsg" role="status"></div>
-            </form>
-            <div class="row" style="margin-top:20px">
-                <button class="btn ghost" id="pOut">Выйти</button>
-                <button class="btn ghost" id="pDel" style="border-color:#b3261e;color:#b3261e">Удалить аккаунт</button>
+            <div class="opt" id="profTabs">
+                <button class="chip" data-pt="profile" aria-pressed="true">Профиль</button>
+                <button class="chip" data-pt="projects" aria-pressed="false">Мои проекты</button>
+                <button class="chip" data-pt="bookings" aria-pressed="false">Консультации</button>
             </div>
-            <p class="who" style="margin-top:14px">Аккаунт хранится на сервере: войти можно с любого устройства.</p>
+
+            <section id="pt-profile" style="padding:0;max-width:640px">
+                <form id="pForm" class="lead" style="max-width:none" novalidate>
+                    <label class="fld">Имя и Фамилия<input id="pName" autocomplete="name"></label>
+                    <label class="fld">Юзернейм<input id="pUser" autocomplete="username"></label>
+                    <label class="fld">Почта<input id="pMail" type="email" autocomplete="email"></label>
+                    <label class="fld">Новый пароль<input id="pNew" type="password" autocomplete="new-password"
+                                                          placeholder="Оставьте пустым, если не меняете"></label>
+                    <label class="fld">Текущий пароль (нужен для сохранения и удаления)<input id="pOld" type="password"
+                                                                                              autocomplete="current-password"></label>
+                    <button class="btn" type="submit">Сохранить</button>
+                    <div class="ok" id="pMsg" role="status"></div>
+                </form>
+                <div class="row" style="margin-top:20px">
+                    <button class="btn ghost" id="pOut">Выйти</button>
+                    <button class="btn ghost" id="pDel" style="border-color:#b3261e;color:#b3261e">Удалить аккаунт
+                    </button>
+                </div>
+                <p class="who" style="margin-top:14px">Аккаунт хранится на сервере: войти можно с любого устройства.</p>
+            </section>
+
+            <section id="pt-projects" hidden style="padding:0">
+                <div id="myProjects"></div>
+            </section>
+
+            <section id="pt-bookings" hidden style="padding:0">
+                <div class="card"><h3>Запись на консультацию с дизайнером</h3>
+                    <p class="who" id="bkTz"></p>
+                    <div class="who" style="margin-top:10px">Дата</div>
+                    <div class="opt" id="bkDays"></div>
+                    <div class="who">Время (1 час)</div>
+                    <div class="opt" id="bkSlots"><p class="who" style="margin:0">Сначала выберите дату.</p></div>
+                    <label class="fld">Проект для обсуждения (необязательно)<select id="bkProject">
+                        <option value="">— без проекта —</option>
+                    </select></label>
+                    <label class="fld">Тема разговора<textarea id="bkTopic" rows="2" maxlength="500"
+                                                               placeholder="Например: обсудить планировку кухни"></textarea></label>
+                    <button class="btn" id="bkGo" type="button" disabled>Записаться</button>
+                    <div class="ok" id="bkMsg" role="status" style="margin-top:12px"></div>
+                </div>
+                <h3 style="margin-top:24px">Мои записи</h3>
+                <div id="myBookings"></div>
+            </section>
         </div>
     </div>
+
+    <div id="view-calc" hidden>
+        <div class="wrap" style="max-width:860px;padding-top:28px;padding-bottom:64px">
+            <button class="btn ghost" id="calcBack" type="button" style="margin-bottom:16px">← К моим проектам</button>
+            <h1 id="calcTitle" style="font-size:clamp(1.6rem,4vw,2.4rem)">Расчёт проекта</h1>
+            <p class="who" id="calcMeta"></p>
+            <div id="calcBody"></div>
+            <div class="row" style="margin-top:20px">
+                <button class="btn" id="payBtn" type="button">Перейти к оплате</button>
+                <button class="btn ghost" id="printBtn" type="button">Распечатать или сохранить в PDF</button>
+            </div>
+            <p class="who" style="margin-top:14px">В стоимость модулей входят доставка до 300 км, сборка, отделка,
+                электрика и сантехника. Итоговая сумма фиксируется в договоре. Цены на сайте демонстрационные.</p>
+        </div>
+    </div>
+
     <div id="view-staff" hidden>
         <div class="wrap" style="padding-top:28px;padding-bottom:64px">
             <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Панель команды</h1>
-            <div class="card" id="teamBox" hidden style="margin-bottom:20px"><h3>Дизайнеры</h3>
-                <div id="teamList"></div>
-                <form id="teamAdd" class="send" style="margin-top:10px"><input id="teamUser"
-                                                                               placeholder="Юзернейм пользователя, которого сделать дизайнером"
-                                                                               aria-label="Юзернейм">
-                    <button class="btn" type="submit">Назначить</button>
-                </form>
+            <div class="opt" id="stTabs">
+                <button class="chip" data-st="plans" aria-pressed="true">Планировки<small id="bPlans"></small></button>
+                <button class="chip" data-st="leads" aria-pressed="false">Обращения<small id="bLeads"></small></button>
+                <button class="chip" data-st="bookings" aria-pressed="false">Записи на консультацию<small
+                        id="bBook"></small></button>
             </div>
-            <div class="staff">
-                <div class="card"><h3>Диалоги</h3>
-                    <div id="convList"></div>
-                </div>
-                <div><h3 id="stTitle">Выберите диалог</h3>
-                    <div id="stAssign" class="card" hidden style="margin-bottom:12px"></div>
-                    <div class="chat" id="stChat"></div>
-                    <form class="send" id="stForm" hidden><input id="stIn" placeholder="Ответ клиенту"
-                                                                 aria-label="Ответ клиенту">
-                        <button class="btn" type="submit">Отправить</button>
+
+            <div id="st-plans">
+                <div class="card" id="teamBox" hidden style="margin-bottom:20px"><h3>Дизайнеры</h3>
+                    <div id="teamList"></div>
+                    <form id="teamAdd" class="send" style="margin-top:10px"><input id="teamUser"
+                                                                                   placeholder="Юзернейм пользователя, которого сделать дизайнером"
+                                                                                   aria-label="Юзернейм">
+                        <button class="btn" type="submit">Назначить</button>
                     </form>
                 </div>
+                <div class="staff">
+                    <div class="card"><h3>Клиенты и диалоги</h3>
+                        <div id="convList"></div>
+                    </div>
+                    <div><h3 id="stTitle">Выберите диалог</h3>
+                        <div id="stAssign" class="card" hidden style="margin-bottom:12px"></div>
+                        <div id="stProjects" class="card" hidden style="margin-bottom:12px"></div>
+                        <div class="chat" id="stChat"></div>
+                        <form class="send" id="stForm" hidden><input id="stIn" placeholder="Ответ клиенту"
+                                                                     aria-label="Ответ клиенту">
+                            <button class="btn" type="submit">Отправить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div id="st-leads" hidden>
+                <p class="who">Обращения с формы «Получить консультацию» внизу главной страницы. Это не диалоги по
+                    планировке.</p>
+                <div class="opt" id="leadFilters">
+                    <button class="chip" data-lf="new" aria-pressed="true">Новые</button>
+                    <button class="chip" data-lf="in_work" aria-pressed="false">В работе</button>
+                    <button class="chip" data-lf="done" aria-pressed="false">Закрытые</button>
+                    <button class="chip" data-lf="all" aria-pressed="false">Все</button>
+                </div>
+                <div id="leadList"></div>
+            </div>
+
+            <div id="st-bookings" hidden>
+                <p class="who">Ближайшие записи клиентов на консультацию (показаны записи за последние 7 дней и
+                    будущие).</p>
+                <div id="bookList"></div>
             </div>
         </div>
     </div>
+
+    <div id="reviewModal" class="modal" hidden>
+        <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="rvT" style="max-width:780px">
+            <button class="x" id="rvX" aria-label="Закрыть">×</button>
+            <h2 id="rvT">Проект</h2>
+            <p class="who" id="rvMeta"></p>
+            <div id="rvCalc"></div>
+            <div id="rvAdjBox"><h3 style="margin-top:16px">Корректировки к стоимости</h3>
+                <div id="rvAdj"></div>
+                <button class="chip" type="button" id="rvAddAdj">+ Добавить строку</button>
+            </div>
+            <label class="fld" style="margin-top:12px">Комментарий клиенту<textarea id="rvNote" rows="3"
+                                                                                    maxlength="1000"
+                                                                                    placeholder="При возврате на доработку опишите, что нужно изменить"></textarea></label>
+            <div class="row">
+                <button class="btn ghost" id="rv3d" type="button">Открыть в 3D</button>
+                <button class="btn ghost" id="rvRev" type="button">Вернуть на доработку</button>
+                <button class="btn" id="rvOk" type="button">Согласовать</button>
+            </div>
+            <div class="ok" id="rvMsg" role="alert" style="margin-top:12px"></div>
+        </div>
+    </div>
+
+    <div id="submitModal" class="modal" hidden>
+        <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="smT">
+            <button class="x" id="smX" aria-label="Закрыть">×</button>
+            <h2 id="smT">Отправить на согласование</h2>
+            <p class="who" id="smInfo"></p>
+            <label class="fld">Название проекта<input id="smTitle" maxlength="80"></label>
+            <label id="smNewWrap" hidden style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input
+                    type="checkbox" id="smNew" style="width:auto"> Сохранить как новый проект</label>
+            <button class="btn" id="smGo" type="button" style="width:100%">Отправить дизайнеру</button>
+            <div class="ok" id="smMsg" role="alert" style="margin-top:12px"></div>
+        </div>
+    </div>
+
     <div id="gToast" role="status"></div>
     <div id="authModal" class="modal" hidden>
         <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="authT">
@@ -475,7 +602,7 @@
 
     /* навигация */
     function go(v,anchor){
-     $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-profile').hidden=v!=='profile';$('#view-staff').hidden=v!=='staff';$('#view-chat').hidden=true;
+     $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-profile').hidden=v!=='profile';$('#view-staff').hidden=v!=='staff';$('#view-calc').hidden=v!=='calc';$('#view-chat').hidden=true;
      if(v==='config'){render()}
      if(v==='interior'){renderInterior()}
      if(v==='profile'){renderProfile()}
@@ -484,14 +611,14 @@
     }
     document.addEventListener('click',e=>{
      const b=e.target.closest('[data-go]');if(!b)return;
-     const p=b.dataset.pick;if(p)S.model=p;
+     const p=b.dataset.pick;if(p){S.model=p;S.projectId=null;S.projectTitle=''}
      go(b.dataset.go,b.dataset.anchor);
     });
 
     /* главная */
     $('#heroArt').innerHTML=house(MODELS[1],'#b9834a','gable',true,false);
     $('#projGrid').innerHTML=MODELS.map((m,i)=>`<article class="card proj"><div class="pic">${house(m,FACADES[i].c,i?'gable':'flat',i>0,false)}</div><div class="txt"><h3>${m.name}</h3><span class="who">${m.area} м² · ${m.rooms}</span><span class="price">от ${fmt(m.price)}</span><button class="btn" data-go="config" data-pick="${m.id}">Настроить этот дом</button></div></article>`).join('');
-    $('#lead').addEventListener('submit',e=>{e.preventDefault();const n=new FormData(e.target).get('name');const ok=$('#leadOk');ok.textContent=`Спасибо, ${n}! Менеджер позвонит вам в течение 15 минут.`;ok.style.display='block';e.target.reset()});
+    $('#lead').addEventListener('submit',e=>{e.preventDefault();submitLead(e.target)});
 
     /* 3D-конструктор */
     const GW=16,GD=12,H=2.7,BOX=new THREE.BoxGeometry(1,1,1),clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -528,11 +655,15 @@
      g.fillStyle='rgba(20,32,27,.8)';g.fillRect(8,20,240,88);g.fillStyle='#fff';g.textAlign='center';g.font='700 34px Onest,Arial,sans-serif';g.fillText(TYPES[r.type].n,128,62);g.font='500 28px Onest,Arial,sans-serif';g.fillText(r.w*r.d+' м²',128,96);
      if(!r.lb){r.lb=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k),depthTest:false,transparent:true}));r.lb.renderOrder=5}else r.lb.material.map.needsUpdate=true}
     function setFloor(r){const T=TYPES[r.type];r.fl.material.color.set(T.open?'#8a6a44':T.wet?'#cfd3d6':FLOORS.find(f=>f.id===(r.floorId||S.floor)).c)}
-    function addRoom(type,w,d){const T=TYPES[type];w=w||T.w;d=d||T.d;const p=spot(w,d);if(!p){toast('На участке нет места. Уменьшите или удалите комнату.');return}
+    function addRoom(type,w,d,px,pz,extra){const T=TYPES[type];w=w||T.w;d=d||T.d;const p=(px!=null&&!isNaN(px)&&!isNaN(pz)&&free(px,pz,w,d))?[px,pz]:spot(w,d);if(!p){toast('На участке нет места. Уменьшите или удалите комнату.');return}
      const r={id:++uid,type,x:p[0],z:p[1],w,d,cw:w,cd:d,sc:0,g:new THREE.Group(),furn:[]};r.cx=r.x+w/2-GW/2;r.cz=r.z+d/2-GD/2;
      r.fl=new THREE.Mesh(BOX,new THREE.MeshStandardMaterial({roughness:.9}));r.ws=[0,1,2,3].map(()=>new THREE.Mesh(BOX,wallMat));r.rf=new THREE.Mesh(BOX,roofMat);
      drawLabel(r);r.g.add(r.fl,...r.ws,r.rf,r.lb);scene.add(r.g);[r.fl,...r.ws].forEach(m=>m.userData.r=r);
-     S.rooms.push(r);setFloor(r);select(r)}
+     S.rooms.push(r);
+     if(extra){if(extra.floor&&FLOORS.some(f=>f.id===extra.floor))r.floorId=extra.floor;
+      r.furn=(extra.furn||[]).filter(f=>f&&FLIST[f.key]).slice(0,60).map(f=>{const b=FLIST[f.key],rot=!!f.rot,fw=rot?b.d:b.w,fd=rot?b.w:b.d;
+       return{key:f.key,n:b.n,w:b.w,d:b.d,c:b.c,ic:b.ic,rot,rang:rot?Math.PI/2:0,sc:1,x:clamp(+f.x||0,0,Math.max(0,w-fw)),z:clamp(+f.z||0,0,Math.max(0,d-fd))}})}
+     setFloor(r);select(r)}
     function upd(r){const k=.14;r.cw+=(r.w-r.cw)*k;r.cd+=(r.d-r.cd)*k;r.cx+=(r.x+r.w/2-GW/2-r.cx)*k;r.cz+=(r.z+r.d/2-GD/2-r.cz)*k;r.sc+=((r.gone?0:1)-r.sc)*.08;
      const h=H*r.sc,t=.15,o=TYPES[r.type].open,[n,s,e,w]=r.ws;r.g.position.set(r.cx,0,r.cz);
      r.fl.scale.set(r.cw,.12,r.cd);r.fl.position.y=.06;
@@ -546,7 +677,7 @@
      r.x=x;r.z=z;r.w=w;r.d=d;drawLabel(r);(r.furn||[]).forEach(f=>{const fw=f.rot?f.d:f.w,fd=f.rot?f.w:f.d;f.x=clamp(f.x,0,Math.max(0,w-fw));f.z=clamp(f.z,0,Math.max(0,d-fd))});syncUI()}
     function move(r,dx,dz){if(free(r.x+dx,r.z+dz,r.w,r.d,r)){r.x+=dx;r.z+=dz}}
     function del(r){if(!r)return;S.rooms=S.rooms.filter(o=>o!==r);r.gone=true;dead.push(r);S.sel=S.rooms[S.rooms.length-1]||null;syncUI()}
-    function price(){const w=WALLS.find(x=>x.id===S.wall),f=FLOORS.find(x=>x.id===S.floor);return S.rooms.reduce((a,r)=>{const T=TYPES[r.type],m=r.w*r.d;return a+(T.open?m*30000:m*(62000+w.p+f.p+(T.wet?15000:0)+(S.roof?8000:0)))},0)}
+    function price(){return calcProject(serializeProject()).modules}
     function toast(t){const o=$('#toast');o.textContent=t;o.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>o.style.opacity=0,2800)}
     function loadPreset(id){const tok=++uid;S.rooms.forEach(r=>{r.gone=true;dead.push(r)});S.rooms=[];S.sel=null;
      (PRE[id]||PRE.oz).forEach((a,i)=>setTimeout(()=>{if(S.loaded===id&&inited)addRoom(a[0],a[1],a[2])},250+i*280));syncUI()}
@@ -615,6 +746,8 @@
 
     /* интерьер: расстановка мебели */
     const FLIST={sofa:{n:'Диван',w:2,d:.9,c:'#8a6a8f',ic:'🛋️'},armchair:{n:'Кресло',w:.8,d:.8,c:'#b98a5a',ic:'🪑'},tv:{n:'Телевизор',w:1.2,d:.15,c:'#2a2a2a',ic:'📺'},table:{n:'Стол',w:1.2,d:.8,c:'#a97c50',ic:'🍽️'},bookshelf:{n:'Стеллаж',w:1,d:.3,c:'#7a5a3a',ic:'📚'},bed:{n:'Кровать',w:1.6,d:2,c:'#c79a9a',ic:'🛏️'},wardrobe:{n:'Шкаф',w:1.2,d:.6,c:'#6b5843',ic:'🚪'},nightstand:{n:'Тумба',w:.5,d:.4,c:'#8a7052',ic:'🕯️'},desk:{n:'Письменный стол',w:1.2,d:.6,c:'#9c8158',ic:'💻'},kitchen:{n:'Кухня',w:2,d:.6,c:'#7d9490',ic:'🍳'},fridge:{n:'Холодильник',w:.7,d:.7,c:'#c9d2d3',ic:'🧊'},sink:{n:'Раковина',w:.6,d:.5,c:'#cfd8da',ic:'🚰'},toilet:{n:'Унитаз',w:.4,d:.6,c:'#e4e9ea',ic:'🚽'},bathtub:{n:'Ванна',w:1.7,d:.75,c:'#dfe6e7',ic:'🛁'}};
+    const FPRICE={sofa:65000,armchair:28000,tv:55000,table:32000,bookshelf:24000,bed:78000,wardrobe:62000,nightstand:9000,desk:26000,kitchen:180000,fridge:85000,sink:22000,toilet:18000,bathtub:70000};
+    Object.keys(FPRICE).forEach(k=>{if(FLIST[k])FLIST[k].p=FPRICE[k]});
     const ROOM_FURN={liv:['sofa','armchair','tv','table','bookshelf'],bed:['bed','wardrobe','nightstand','desk'],kid:['bed','wardrobe','desk','bookshelf'],kit:['kitchen','fridge','table'],bath:['sink','toilet','bathtub'],off:['desk','bookshelf','armchair'],hall:['wardrobe'],wr:['wardrobe'],ter:['table','armchair']};
     const FHT={sofa:.8,armchair:.8,tv:.55,table:.75,bookshelf:1.9,bed:.55,wardrobe:2.05,nightstand:.5,desk:.75,kitchen:.9,fridge:1.8,sink:.85,toilet:.42,bathtub:.5};
     let Iroom=null,Isel=null,ctx2,i2scale=40,idrag=null,ianim=false,Imode='plan';
@@ -629,7 +762,7 @@
      if(!rooms.length)return;
      if(!Iroom||!rooms.includes(Iroom))Iroom=rooms[0];
      $('#roomTabs').innerHTML=rooms.map(r=>`<button class="chip" data-rid="${r.id}" aria-pressed="${r===Iroom}">${TYPES[r.type].n}<small>${r.w}×${r.d} м</small></button>`).join('');
-     $('#oFurn').innerHTML=ROOM_FURN[Iroom.type].map(k=>`<button class="chip" data-add="${k}">${FLIST[k].ic} ${FLIST[k].n}</button>`).join('');
+     $('#oFurn').innerHTML=ROOM_FURN[Iroom.type].map(k=>`<button class="chip" data-add="${k}">${FLIST[k].ic} ${FLIST[k].n}<small>${fmt(FLIST[k].p)}</small></button>`).join('');
      $('#oIFloor').innerHTML=FLOORS.map(f=>`<button class="chip" data-fl="${f.id}" aria-pressed="${(Iroom.floorId||S.floor)===f.id}">${f.n}</button>`).join('');
      Isel=null;$('#furnSel').hidden=true;drawInterior();
     }
@@ -770,19 +903,27 @@
      Isel.x=clamp(cx0-fw/2,0,Math.max(0,Iroom.w-fw));Isel.z=clamp(cz0-fd/2,0,Math.max(0,Iroom.d-fd));
      drawInterior();if(Imode==='3d')syncScene3D()};
     $('#fDel').onclick=()=>{if(!Isel)return;Isel.dead=true;Isel=null;$('#furnSel').hidden=true;drawInterior()};
-    $('#toChat2').onclick=()=>S.rooms.length?openChat('interior'):toast('Сначала соберите дом в конструкторе.');
+    $('#toChat2').onclick=()=>openSubmit('interior');
 
-    /* ===== Supabase: аккаунты, роли, диалоги ===== */
+    /* ===== Supabase: аккаунты, роли, диалоги, проекты, записи ===== */
     const cfg=window.APP_CONFIG||{};
     const sb=(window.supabase&&cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABASE_URL+cfg.SUPABASE_ANON_KEY))?window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_ANON_KEY):null;
     const NOSB='Сервер аккаунтов не настроен: заполните config.js (см. README).';
+    const TZ=cfg.TIMEZONE||'Europe/Moscow',TZL=cfg.TIMEZONE_LABEL||'Москва';
+    const WORK={from:cfg.WORK_FROM!=null?cfg.WORK_FROM:10,to:cfg.WORK_TO!=null?cfg.WORK_TO:19,days:cfg.WORK_DAYS||[1,2,3,4,5,6],ahead:cfg.SLOT_DAYS_AHEAD||14};
     let PROF=null,recovery=false,amode='in',gtt;
     const isStaff=()=>!!PROF&&(PROF.role==='owner'||PROF.role==='designer');
     const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    function gtoast(t){const e=$('#gToast');e.textContent=t;e.style.opacity=1;clearTimeout(gtt);gtt=setTimeout(()=>e.style.opacity=0,3500)}
+    function gtoast(t){const e=$('#gToast');e.textContent=t;e.style.opacity=1;clearTimeout(gtt);gtt=setTimeout(()=>e.style.opacity=0,3800)}
     const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/,USER_RE=/^[a-z0-9_]{3,20}$/i;
     const okName=n=>n.length>=3&&n.split(' ').length>=2;
     const redirect=()=>location.origin+location.pathname;
+    const PST={submitted:'На согласовании',revision:'На доработке',approved:'Согласован',paid:'Оплачен'};
+    const LST={new:'Новая',in_work:'В работе',done:'Закрыта'},LCLS={new:'submitted',in_work:'paid',done:'approved'};
+    const fmtDT=iso=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,weekday:'short',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit'}).format(new Date(iso));
+    const fmtD=iso=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,day:'numeric',month:'long',year:'numeric'}).format(new Date(iso));
+    const hhmm=d=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,hour:'2-digit',minute:'2-digit'}).format(d);
+    const showMsg=(sel,t)=>{const m=$(sel);m.textContent=t;m.style.display=t?'block':'none'};
 
     async function loadProfile(){
      if(!sb)return;
@@ -793,10 +934,15 @@
     }
     function authUI(){const p=PROF;$('#authBtn').textContent=p?'👤 '+p.full_name:'Войти';$('#outBtn').hidden=!p;$('#staffBtn').hidden=!isStaff();
      const n=document.querySelector('#lead [name=name]');if(p&&n&&!n.value)n.value=p.full_name}
-    async function signOut(){if(sb){await sb.removeAllChannels();await sb.auth.signOut()}PROF=null;CH.id=null;ST.id=null;authUI();go('home')}
+    async function signOut(){if(sb){await sb.removeAllChannels();await sb.auth.signOut()}
+     PROF=null;CH.id=null;ST.id=null;S.projectId=null;S.projectTitle='';authUI();go('home')}
+
+    /* окна: общее закрытие по Esc и клику на фон */
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal:not([hidden])').forEach(m=>m.hidden=true)});
+    document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal'))e.target.hidden=true});
 
     /* окно входа / регистрации */
-    function amsg(t){const m=$('#aMsg');m.textContent=t;m.style.display=t?'block':'none'}
+    const amsg=t=>showMsg('#aMsg',t);
     function setMode(m){amode=m;[...$('#authTabs').children].forEach(c=>c.setAttribute('aria-pressed',c.dataset.t===m));
      $('#aLogin').hidden=m!=='in';$('#aName').hidden=m!=='up';$('#aUser').hidden=m!=='up';$('#aMail').hidden=m!=='up';$('#aForgot').hidden=m!=='in';
      $('#authT').textContent=m==='in'?'Вход':'Регистрация';$('#aSubmit').textContent=m==='in'?'Войти':'Создать аккаунт';
@@ -804,12 +950,10 @@
     function openAuth(){setMode('in');$('#authForm').reset();$('#authModal').hidden=false;setTimeout(()=>$('#aLogin').focus(),30)}
     function closeAuth(){$('#authModal').hidden=true}
     async function emailFor(login){if(login.includes('@'))return login;const{data}=await sb.rpc('email_by_username',{u:login});return data||null}
-    $('#authBtn').onclick=()=>{PROF?go('profile'):openAuth()};
+    $('#authBtn').onclick=()=>{PROF?openProfile('profile'):openAuth()};
     $('#outBtn').onclick=signOut;
     $('#staffBtn').onclick=()=>go('staff');
     $('#authX').onclick=closeAuth;
-    $('#authModal').addEventListener('click',e=>{if(e.target.id==='authModal')closeAuth()});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#authModal').hidden)closeAuth()});
     $('#authTabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)setMode(b.dataset.t)});
     $('#authForm').addEventListener('submit',async e=>{e.preventDefault();amsg('');if(!sb)return amsg(NOSB);
      const pass=$('#aPass').value;if(pass.length<6)return amsg('Пароль должен быть не короче 6 символов.');
@@ -841,14 +985,87 @@
      const email=await emailFor(lg);if(email)await sb.auth.resetPasswordForEmail(email,{redirectTo:redirect()});
      amsg('Если такой аккаунт есть, мы отправили письмо со ссылкой для смены пароля.')};
     if(sb)sb.auth.onAuthStateChange(ev=>{
-     if(ev==='PASSWORD_RECOVERY'){recovery=true;setTimeout(async()=>{await loadProfile();go('profile')},0)}
+     if(ev==='PASSWORD_RECOVERY'){recovery=true;setTimeout(async()=>{await loadProfile();openProfile('profile')},0)}
      else if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(ev)){setTimeout(loadProfile,0)}});
 
-    /* личный кабинет */
-    function pmsg(t){const m=$('#pMsg');m.textContent=t;m.style.display=t?'block':'none'}
+    /* обращения с формы внизу главной страницы */
+    async function submitLead(form){const ok=$('#leadOk'),say=t=>{ok.textContent=t;ok.style.display='block'};
+     const fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim();
+     if(fd.get('website'))return say('Спасибо!');
+     if(!sb)return say('Приём обращений пока не настроен. Позвоните нам или напишите в чат.');
+     if(name.length<2||phone.replace(/\D/g,'').length<6)return say('Проверьте имя и телефон.');
+     let last=0;try{last=+localStorage.getItem('lead_ts')||0}catch(e){}
+     if(Date.now()-last<60000)return say('Обращение уже отправлено. Если нужно отправить ещё одно, подождите минуту.');
+     const btn=form.querySelector('button[type=submit]');btn.disabled=true;
+     const{error}=await sb.from('leads').insert({name,phone});btn.disabled=false;
+     if(error)return say('Не удалось отправить обращение. Попробуйте ещё раз или позвоните нам.');
+     try{localStorage.setItem('lead_ts',String(Date.now()))}catch(e){}
+     say('Спасибо, '+name+'! Менеджер свяжется с вами в течение 15 минут в рабочее время.');form.reset()}
+
+    /* ===== расчёт стоимости ===== */
+    const RATES={base:62000,terrace:30000,wet:15000,roof:8000,foundation:4500,foundationOpen:2500};
+    function serializeProject(){return{v:1,wall:S.wall,floor:S.floor,roof:!!S.roof,
+     rooms:S.rooms.filter(r=>!r.gone).map(r=>({type:r.type,x:r.x,z:r.z,w:r.w,d:r.d,floor:r.floorId||null,
+      furn:(r.furn||[]).filter(f=>!f.dead).map(f=>({key:f.key,x:+(+f.x).toFixed(2),z:+(+f.z).toFixed(2),rot:!!f.rot}))}))}}
+    function sumCalc(c){c.total=c.modules+c.foundation.total+c.furniture.total+(c.adjustments||[]).reduce((s,a)=>s+(+a.amount||0),0);return c}
+    function calcProject(c,adj){
+     const wall=WALLS.find(w=>w.id===c.wall)||WALLS[0],rooms=[],fm={};
+     let modules=0,closedA=0,openA=0;
+     (c.rooms||[]).forEach(r=>{const T=TYPES[r.type];if(!T)return;
+      const w=clamp(Math.round(+r.w)||T.w,1,GW),d=clamp(Math.round(+r.d)||T.d,1,GD),a=w*d,fl=FLOORS.find(f=>f.id===(r.floor||c.floor))||FLOORS[0];
+      const raw=T.open?[['Терраса: основа и настил',a*RATES.terrace]]:[
+       ['Модуль: каркас, утепление, внутренняя отделка',a*RATES.base],['Наружные стены: '+wall.n,a*wall.p],['Пол: '+fl.n,a*fl.p],
+       ['Влагозащита и подводки',T.wet?a*RATES.wet:0],['Кровля',c.roof?a*RATES.roof:0]];
+      const lines=raw.filter(l=>l[1]).map(l=>[l[0],Math.round(l[1])]),total=lines.reduce((s,l)=>s+l[1],0);
+      rooms.push({name:T.n,w,d,area:a,lines,total});modules+=total;if(T.open)openA+=a;else closedA+=a;
+      (r.furn||[]).forEach(f=>{const b=FLIST[f.key];if(!b)return;const k=T.n+'|'+f.key;fm[k]=fm[k]||{room:T.n,name:b.n,price:b.p,qty:0};fm[k].qty++})});
+     const items=Object.values(fm).map(i=>({...i,total:i.price*i.qty}));
+     return sumCalc({v:1,rooms,modules,
+      foundation:{closedArea:closedA,openArea:openA,rate:RATES.foundation,rateOpen:RATES.foundationOpen,total:Math.round(closedA*RATES.foundation+openA*RATES.foundationOpen)},
+      furniture:{items,total:items.reduce((s,i)=>s+i.total,0)},
+      adjustments:(adj||[]).map(a=>({name:String(a.name||'').slice(0,80),amount:Math.round(+a.amount||0)})),at:new Date().toISOString()})}
+    function calcHTML(c){
+     const m=n=>fmt(Math.round(n)),tr=(a,b,cls)=>`<tr${cls?` class="${cls}"`:''}><td>${a}</td><td class="n">${b}</td></tr>`,tw=h=>`<div class="tw"><table class="tbl">${h}</table></div>`;
+     let h='<h3>Модули по комнатам</h3>';
+     c.rooms.forEach(r=>{h+=tw(`<thead><tr><th>${esc(r.name)} · ${r.w}×${r.d} м · ${r.area} м²</th><th class="n">Сумма</th></tr></thead><tbody>${r.lines.map(l=>tr(esc(l[0]),m(l[1]))).join('')}${tr('<b>Итого по комнате</b>','<b>'+m(r.total)+'</b>')}</tbody>`)});
+     const f=c.foundation;
+     h+='<h3>Фундамент</h3>'+tw('<tbody>'+(f.closedArea?tr(`Комнаты: ${f.closedArea} м² × ${m(f.rate)}`,m(f.closedArea*f.rate)):'')+(f.openArea?tr(`Терраса: ${f.openArea} м² × ${m(f.rateOpen)}`,m(f.openArea*f.rateOpen)):'')+tr('<b>Итого фундамент</b>','<b>'+m(f.total)+'</b>')+'</tbody>');
+     if(c.furniture.items.length)h+='<h3>Мебель</h3>'+tw('<thead><tr><th>Позиция</th><th class="n">Сумма</th></tr></thead><tbody>'+c.furniture.items.map(i=>tr(`${esc(i.room)}: ${esc(i.name)} × ${i.qty} (${m(i.price)} за шт.)`,m(i.total))).join('')+tr('<b>Итого мебель</b>','<b>'+m(c.furniture.total)+'</b>')+'</tbody>');
+     const adj=(c.adjustments||[]).filter(a=>a.name||a.amount),adjSum=adj.reduce((s,a)=>s+(+a.amount||0),0);
+     if(adj.length)h+='<h3>Корректировки дизайнера</h3>'+tw('<tbody>'+adj.map(a=>tr(esc(a.name||'Корректировка'),m(a.amount))).join('')+'</tbody>');
+     h+='<h3>Полная стоимость</h3>'+tw('<tbody>'+tr('Модули',m(c.modules))+tr('Фундамент',m(f.total))+tr('Мебель',m(c.furniture.total))+(adj.length?tr('Корректировки',m(adjSum)):'')+tr('<b style="font-size:1.25em">ИТОГО</b>','<b style="font-size:1.25em">'+m(c.total)+'</b>','tot')+'</tbody>');
+     return h}
+
+    /* ===== сохранение и загрузка проектов в конструктор ===== */
+    let LOADTOK=0;
+    function loadProject(c,meta,preview){
+     if(!c||!Array.isArray(c.rooms))return gtoast('Проект повреждён и не может быть открыт.');
+     const tok=++LOADTOK;
+     S.model='proj';S.loaded='proj';go('config');
+     S.rooms.forEach(r=>{r.gone=true;dead.push(r)});S.rooms=[];S.sel=null;Iroom=null;
+     if(WALLS.some(w=>w.id===c.wall)){S.wall=c.wall;applyWall()}
+     if(FLOORS.some(f=>f.id===c.floor))S.floor=c.floor;
+     S.roof=!!c.roof;
+     S.projectId=preview?null:(meta&&meta.id)||null;S.projectTitle=preview?'':(meta&&meta.title)||'';
+     const list=c.rooms.slice(0,40);
+     list.forEach((o,i)=>setTimeout(()=>{if(tok!==LOADTOK)return;const T=TYPES[o.type];if(!T)return;
+      addRoom(o.type,clamp(Math.round(+o.w)||T.w,1,GW),clamp(Math.round(+o.d)||T.d,1,GD),Math.round(+o.x),Math.round(+o.z),o);
+      if(i===list.length-1){S.sel=null;syncUI()}},110*i));
+     gtoast(preview?'Проект клиента открыт для просмотра. Изменения не сохраняются.':(meta&&meta.status==='paid'?'Проект оплачен: отправить изменения нельзя.':'Проект загружен. Если измените его и отправите снова, потребуется новое согласование.'))}
+
+    /* ===== личный кабинет ===== */
+    let PTAB='profile',MY=[],CALCP=null;
+    function openProfile(tab){PTAB=tab||'profile';go('profile')}
+    const pmsg=t=>showMsg('#pMsg',t);
     function renderProfile(){if(!PROF){go('home');openAuth();return}
-     $('#pName').value=PROF.full_name;$('#pUser').value=PROF.username;$('#pMail').value=PROF.email;$('#pOld').value='';$('#pNew').value='';
-     $('#pOld').closest('label').hidden=recovery;pmsg(recovery?'Введите новый пароль и нажмите «Сохранить».':'')}
+     if(recovery)PTAB='profile';
+     [...$('#profTabs').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.pt===PTAB));
+     ['profile','projects','bookings'].forEach(t=>$('#pt-'+t).hidden=t!==PTAB);
+     if(PTAB==='profile'){$('#pName').value=PROF.full_name;$('#pUser').value=PROF.username;$('#pMail').value=PROF.email;$('#pOld').value='';$('#pNew').value='';
+      $('#pOld').closest('label').hidden=recovery;pmsg(recovery?'Введите новый пароль и нажмите «Сохранить».':'')}
+     if(PTAB==='projects')loadMyProjects();
+     if(PTAB==='bookings')initBookings()}
+    $('#profTabs').addEventListener('click',e=>{const b=e.target.closest('[data-pt]');if(b){PTAB=b.dataset.pt;renderProfile()}});
     $('#pForm').addEventListener('submit',async e=>{e.preventDefault();if(!sb||!PROF)return;
      const nm=$('#pName').value.trim().replace(/\s+/g,' '),un=$('#pUser').value.trim(),ml=$('#pMail').value.trim().toLowerCase(),old=$('#pOld').value,np=$('#pNew').value;
      if(recovery){if(np.length<6)return pmsg('Новый пароль должен быть не короче 6 символов.');
@@ -873,10 +1090,101 @@
      const{error}=await sb.rpc('delete_my_account');if(error)return pmsg(error.message);
      await signOut()};
 
-    /* чат с дизайнером */
-    function summary(){const furnTxt=S.rooms.filter(r=>r.furn&&r.furn.length).map(r=>`  ${TYPES[r.type].n}: `+r.furn.map(f=>f.n).join(', ')).join('\n');
-     return 'Моя конфигурация:\n'+S.rooms.map(r=>`• ${TYPES[r.type].n} ${r.w}×${r.d} м = ${r.w*r.d} м², пол: ${FLOORS.find(f=>f.id===(r.floorId||S.floor)).n}`).join('\n')+`\nСтены: ${WALLS.find(x=>x.id===S.wall).n}\nКрыша: ${S.roof?'да':'нет'}\nИтого: ${fmt(price())}`+(furnTxt?`\nМебель:\n${furnTxt}`:'')}
+    /* мои проекты */
+    async function loadMyProjects(){const box=$('#myProjects');box.innerHTML='<p class="who">Загрузка…</p>';
+     const{data,error}=await sb.from('projects').select('id,title,status,price,submitted_at,review_note,approved_at,config,calc').eq('client_id',PROF.id).order('submitted_at',{ascending:false});
+     if(error){box.innerHTML='<p class="who">Не удалось загрузить проекты.</p>';return}
+     MY=data||[];
+     box.innerHTML=MY.length?MY.map(p=>`<div class="card" data-pid="${p.id}" style="margin-bottom:12px"><div class="send" style="align-items:center;flex-wrap:wrap"><h3 style="margin:0;flex:1">${esc(p.title)}</h3><span class="badge b-${p.status}">${PST[p.status]||p.status}</span></div><p class="who" style="margin:6px 0">Отправлен ${esc(fmtD(p.submitted_at))} · модули ≈ ${fmt(+p.price)}${p.approved_at?' · согласован '+esc(fmtD(p.approved_at)):''}</p>${p.review_note?`<p style="margin:6px 0"><b>Комментарий дизайнера:</b> ${esc(p.review_note)}</p>`:''}<div class="row"><button class="btn ghost" data-act="open">Открыть в конструкторе</button>${(p.status==='approved'||p.status==='paid')&&p.calc?'<button class="btn" data-act="calc">Расчёт и стоимость</button>':''}<button class="btn ghost" data-act="chat">Написать дизайнеру</button></div></div>`).join(''):'<div class="card"><p style="margin:0">Вы ещё не отправляли проекты на согласование. Соберите дом в конструкторе и нажмите «Отправить дизайнеру».</p><button class="btn" style="margin-top:12px" data-go="config">Открыть конструктор</button></div>'}
+    $('#myProjects').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;
+     const card=b.closest('[data-pid]'),p=card&&MY.find(x=>x.id===card.dataset.pid);if(!p)return;
+     if(b.dataset.act==='open')loadProject(p.config,{id:p.id,title:p.title,status:p.status});
+     else if(b.dataset.act==='calc')showCalc(p);
+     else if(b.dataset.act==='chat')openChat('profile')});
 
+    /* страница расчёта */
+    function showCalc(p){if(!p.calc)return gtoast('Расчёт ещё не готов.');CALCP=p;
+     $('#calcTitle').textContent='Расчёт: '+p.title;
+     $('#calcMeta').textContent=(PST[p.status]||'')+(p.approved_at?' · согласован '+fmtD(p.approved_at):'');
+     $('#calcBody').innerHTML=calcHTML(p.calc);$('#payBtn').hidden=p.status==='paid';go('calc')}
+    $('#calcBack').onclick=()=>openProfile('projects');
+    $('#printBtn').onclick=()=>window.print();
+    function goToPayment(p){ // точка подключения оплаты
+     if(cfg.PAYMENT_URL){location.href=cfg.PAYMENT_URL+(cfg.PAYMENT_URL.includes('?')?'&':'?')+'project='+encodeURIComponent(p.id)+'&amount='+p.calc.total;return}
+     gtoast('Оплата пока не подключена. Менеджер пришлёт реквизиты в чате.')}
+    $('#payBtn').onclick=()=>{if(CALCP)goToPayment(CALCP)};
+
+    /* отправка проекта на согласование */
+    let submitFrom='config';
+    const smmsg=t=>showMsg('#smMsg',t);
+    function openSubmit(from){
+     if(!sb)return gtoast(NOSB);
+     if(!S.rooms.length)return gtoast('Сначала добавьте хотя бы одну комнату.');
+     if(!PROF){openAuth();amsg('Войдите или зарегистрируйтесь, чтобы отправить проект дизайнеру.');return}
+     submitFrom=from||'config';
+     $('#smTitle').value=S.projectTitle||('Проект от '+new Date().toLocaleDateString('ru-RU'));
+     const area=S.rooms.reduce((a,r)=>a+r.w*r.d,0);
+     $('#smInfo').textContent=`Комнат: ${S.rooms.length}, площадь ${area} м², модули ≈ ${fmt(price())}. Фундамент и мебель дизайнер посчитает при согласовании.`;
+     $('#smNewWrap').hidden=!S.projectId;$('#smNew').checked=false;smmsg('');$('#submitModal').hidden=false;setTimeout(()=>$('#smTitle').focus(),30)}
+    $('#smX').onclick=()=>$('#submitModal').hidden=true;
+    $('#smGo').onclick=async()=>{const title=$('#smTitle').value.trim();if(!title)return smmsg('Введите название проекта.');
+     $('#smGo').disabled=true;
+     const{data,error}=await sb.rpc('submit_project',{p_id:(S.projectId&&!$('#smNew').checked)?S.projectId:null,p_title:title,p_config:serializeProject(),p_price:price()});
+     $('#smGo').disabled=false;
+     if(error)return smmsg(error.message);
+     S.projectId=data;S.projectTitle=title;$('#submitModal').hidden=true;gtoast('Проект отправлен на согласование');openChat(submitFrom)};
+    $('#toChat').onclick=()=>openSubmit('config');
+
+    /* запись на консультацию */
+    const BK={days:[],day:null,slot:null};
+    function companyToday(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return[+p.year,+p.month,+p.day]}
+    function zonedTime(y,m,d,h){const guess=Date.UTC(y,m-1,d,h);
+     const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:TZ,hourCycle:'h23',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).formatToParts(new Date(guess)).map(x=>[x.type,x.value]));
+     return new Date(guess-(Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute)-guess))}
+    function bkDays(){const[y,m,d]=companyToday(),out=[];
+     for(let i=0;i<WORK.ahead;i++){const dt=new Date(Date.UTC(y,m-1,d+i));if(WORK.days.includes(dt.getUTCDay()))out.push({y:dt.getUTCFullYear(),m:dt.getUTCMonth()+1,d:dt.getUTCDate(),dt})}return out}
+    const bkmsg=t=>showMsg('#bkMsg',t);
+    async function initBookings(){BK.day=null;BK.slot=null;$('#bkGo').disabled=true;bkmsg('');
+     $('#bkTz').textContent='Время указано по часовому поясу: '+TZL+'. Консультация длится 1 час.';
+     BK.days=bkDays();
+     $('#bkDays').innerHTML=BK.days.map((x,i)=>`<button class="chip" data-di="${i}" aria-pressed="false">${esc(new Intl.DateTimeFormat('ru-RU',{timeZone:'UTC',weekday:'short',day:'numeric',month:'short'}).format(x.dt))}</button>`).join('');
+     $('#bkSlots').innerHTML='<p class="who" style="margin:0">Сначала выберите дату.</p>';
+     const{data}=await sb.from('projects').select('id,title').eq('client_id',PROF.id).order('submitted_at',{ascending:false});
+     $('#bkProject').innerHTML='<option value="">— без проекта —</option>'+(data||[]).map(p=>`<option value="${p.id}">${esc(p.title)}</option>`).join('');
+     loadMyBookings()}
+    async function loadSlots(){const x=BK.day;if(!x)return;BK.slot=null;$('#bkGo').disabled=true;
+     const from=zonedTime(x.y,x.m,x.d,WORK.from),to=zonedTime(x.y,x.m,x.d,WORK.to);
+     $('#bkSlots').innerHTML='<p class="who" style="margin:0">Загрузка…</p>';
+     const{data,error}=await sb.rpc('slot_load',{p_from:from.toISOString(),p_to:to.toISOString()});
+     if(error){$('#bkSlots').innerHTML='<p class="who" style="margin:0">Не удалось загрузить расписание.</p>';return}
+     const map={};(data||[]).forEach(r=>{map[new Date(r.slot_start).getTime()]=r});
+     let html='';
+     for(let h=WORK.from;h<WORK.to;h++){const s=zonedTime(x.y,x.m,x.d,h),e=zonedTime(x.y,x.m,x.d,h+1),t=s.getTime(),info=map[t];
+      const past=t<Date.now()+3600e3,full=info&&info.taken>=info.capacity,mine=info&&info.mine;
+      const state=mine?'вы записаны':past?'недоступно':full?'занято':'свободно';
+      html+=`<button class="chip" data-t="${s.toISOString()}" aria-pressed="false"${(past||full||mine)?' disabled':''}>${hhmm(s)}–${hhmm(e)}<small>${state}</small></button>`}
+     $('#bkSlots').innerHTML=html||'<p class="who" style="margin:0">На эту дату слотов нет.</p>'}
+    $('#bkDays').addEventListener('click',e=>{const b=e.target.closest('[data-di]');if(!b)return;
+     [...$('#bkDays').children].forEach(x=>x.setAttribute('aria-pressed',x===b));BK.day=BK.days[+b.dataset.di];bkmsg('');loadSlots()});
+    $('#bkSlots').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b||b.disabled)return;
+     [...$('#bkSlots').children].forEach(x=>x.setAttribute('aria-pressed',x===b));BK.slot=b.dataset.t;$('#bkGo').disabled=false});
+    $('#bkGo').onclick=async()=>{if(!BK.slot)return;$('#bkGo').disabled=true;
+     const{error}=await sb.rpc('book_slot',{p_start:BK.slot,p_topic:$('#bkTopic').value.trim()||null,p_project:$('#bkProject').value||null});
+     if(error){bkmsg(error.message);await loadSlots();return}
+     bkmsg('Вы записаны на '+fmtDT(BK.slot)+' ('+TZL+').');$('#bkTopic').value='';await loadSlots();loadMyBookings()};
+    async function loadMyBookings(){const box=$('#myBookings');
+     const{data,error}=await sb.from('bookings').select('id,starts_at,status,topic,designer:profiles!bookings_designer_id_fkey(full_name),project:projects(title)').eq('client_id',PROF.id).order('starts_at',{ascending:false}).limit(30);
+     if(error){box.innerHTML='<p class="who">Не удалось загрузить записи.</p>';return}
+     const now=Date.now();
+     box.innerHTML=(data&&data.length)?data.map(b=>{const past=new Date(b.starts_at).getTime()<now,
+      st=b.status==='cancelled'?['Отменена','revision']:b.status==='done'?['Проведена','approved']:past?['Прошла','approved']:['Запланирована','submitted'];
+      return `<div class="card" style="margin-bottom:10px"><div class="send" style="align-items:center;flex-wrap:wrap"><b style="flex:1">${esc(fmtDT(b.starts_at))}</b><span class="badge b-${st[1]}">${st[0]}</span></div><p class="who" style="margin:6px 0">${b.designer?'Дизайнер: '+esc(b.designer.full_name):'Дизайнер будет назначен'}${b.project?' · проект «'+esc(b.project.title)+'»':''}</p>${b.topic?`<p style="margin:6px 0">${esc(b.topic)}</p>`:''}${b.status==='booked'&&!past?`<button class="chip" data-cancel="${b.id}">Отменить запись</button>`:''}</div>`}).join(''):'<p class="who">У вас пока нет записей.</p>'}
+    $('#myBookings').addEventListener('click',async e=>{const b=e.target.closest('[data-cancel]');if(!b)return;
+     if(!confirm('Отменить запись?'))return;
+     const{error}=await sb.rpc('cancel_booking',{p_id:b.dataset.cancel});
+     gtoast(error?error.message:'Запись отменена');loadMyBookings();if(BK.day)loadSlots()});
+
+    /* чат с дизайнером */
     const CH={id:null,seen:new Set(),ch:null};
     let chatFrom='config';
     function renderMsg(box,m,seen){if(seen.has(m.id))return;seen.add(m.id);
@@ -889,42 +1197,58 @@
     async function openChat(from){chatFrom=from||'config';
      if(!sb){gtoast(NOSB);return}
      if(!PROF){openAuth();amsg('Войдите или зарегистрируйтесь, чтобы написать дизайнеру.');return}
-     ['home','config','interior','profile','staff'].forEach(v=>$('#view-'+v).hidden=true);$('#view-chat').hidden=false;window.scrollTo(0,0);
-     $('#chat').innerHTML='';$('#finOk').style.display='none';CH.seen=new Set();
+     ['home','config','interior','profile','staff','calc'].forEach(v=>$('#view-'+v).hidden=true);$('#view-chat').hidden=false;window.scrollTo(0,0);
+     $('#chat').innerHTML='';CH.seen=new Set();
      let{data:c}=await sb.from('conversations').select('id,status').eq('client_id',PROF.id).neq('status','closed').order('created_at',{ascending:false}).limit(1).maybeSingle();
-     let fresh=false;
      if(!c){const r=await sb.from('conversations').insert({client_id:PROF.id}).select('id,status').single();
-      if(r.error){gtoast('Не удалось открыть диалог');return}c=r.data;fresh=true}
+      if(r.error){gtoast('Не удалось открыть диалог');return}c=r.data}
      CH.id=c.id;
      const{data:msgs}=await sb.from('messages').select('*').eq('conversation_id',CH.id).order('created_at');
      (msgs||[]).forEach(m=>renderMsg($('#chat'),m,CH.seen));
-     if(fresh&&S.rooms.length)await postMsg(CH,$('#chat'),summary());
      if(CH.ch)sb.removeChannel(CH.ch);
      CH.ch=sb.channel('c-'+CH.id).on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:'conversation_id=eq.'+CH.id},p=>renderMsg($('#chat'),p.new,CH.seen)).subscribe()}
-    $('#toChat').onclick=()=>S.rooms.length?openChat('config'):gtoast('Добавьте хотя бы одну комнату.');
     $('#sendForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#msgIn').value.trim();if(!v||!CH.id)return;$('#msgIn').value='';postMsg(CH,$('#chat'),v)});
-    $('#sendCfg').onclick=()=>{if(CH.id&&S.rooms.length)postMsg(CH,$('#chat'),summary());else gtoast('Сначала соберите дом в конструкторе.')};
+    $('#sendCfg').onclick=()=>openSubmit(chatFrom);
+    $('#chatMine').onclick=()=>openProfile('projects');
     $('#editCfg').onclick=()=>go(chatFrom);
-    $('#finish').onclick=async()=>{if(!CH.id)return;
-     const{error}=await sb.from('conversations').update({status:'approved'}).eq('id',CH.id);if(error)return gtoast('Ошибка: '+error.message);
-     await postMsg(CH,$('#chat'),'✅ Проект согласован на сумму '+fmt(price()));
-     const o=$('#finOk');o.textContent='Проект согласован. Менеджер свяжется с вами для подписания договора.';o.style.display='block'};
 
-    /* панель команды (дизайнеры и владелец) */
-    const ST={id:null,seen:new Set(),ch:null,list:[],designers:[],t:null};
-    const stLabel=s=>({open:'открыт',approved:'согласован',closed:'закрыт'}[s]||s);
+    /* ===== панель команды ===== */
+    const ST={id:null,seen:new Set(),ch:null,list:[],designers:[],projects:[],t:null,leadFilter:'new'};
+    let STAB='plans';
     async function renderStaff(){if(!sb||!isStaff()){go('home');return}
-     $('#teamBox').hidden=PROF.role!=='owner';await refreshStaff();
+     $('#teamBox').hidden=PROF.role!=='owner';
      if(ST.ch)sb.removeChannel(ST.ch);
      const later=()=>{clearTimeout(ST.t);ST.t=setTimeout(refreshStaff,400)};
      ST.ch=sb.channel('staff')
       .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},p=>{if(p.new.conversation_id===ST.id)renderMsg($('#stChat'),p.new,ST.seen);later()})
-      .on('postgres_changes',{event:'*',schema:'public',table:'conversations'},later).subscribe()}
-    async function refreshStaff(){
-     if(PROF&&PROF.role==='owner')await refreshTeam();
-     const{data}=await sb.from('conversations').select('id,status,designer_id,client:profiles!conversations_client_id_fkey(full_name,username),designer:profiles!conversations_designer_id_fkey(full_name)').order('updated_at',{ascending:false});
-     ST.list=data||[];
-     $('#convList').innerHTML=ST.list.length?ST.list.map(c=>`<button class="chip" data-cid="${c.id}" aria-pressed="${c.id===ST.id}" style="width:100%;margin-bottom:8px">${esc(c.client&&c.client.full_name||'Клиент')}<small>@${esc(c.client&&c.client.username||'')} · ${c.designer?esc(c.designer.full_name):'без дизайнера'} · ${stLabel(c.status)}</small></button>`).join(''):'<p class="who">Диалогов пока нет.</p>'}
+      .on('postgres_changes',{event:'*',schema:'public',table:'conversations'},later)
+      .on('postgres_changes',{event:'*',schema:'public',table:'projects'},later)
+      .on('postgres_changes',{event:'*',schema:'public',table:'leads'},later)
+      .on('postgres_changes',{event:'*',schema:'public',table:'bookings'},later).subscribe();
+     staffTab(STAB)}
+    function staffTab(t){STAB=t;[...$('#stTabs').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===t));
+     ['plans','leads','bookings'].forEach(x=>$('#st-'+x).hidden=x!==t);refreshStaff()}
+    $('#stTabs').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(b)staffTab(b.dataset.st)});
+    async function refreshStaff(){if(!sb||!isStaff())return;refreshBadges();
+     if(STAB==='plans')await refreshPlans();else if(STAB==='leads')await refreshLeads();else await refreshBookings()}
+    async function refreshBadges(){
+     const cnt=async(t,f)=>{const{count}=await f(sb.from(t).select('id',{count:'exact',head:true}));return count||0};
+     const[a,b,c]=await Promise.all([cnt('projects',q=>q.eq('status','submitted')),cnt('leads',q=>q.eq('status','new')),cnt('bookings',q=>q.eq('status','booked').gte('starts_at',new Date().toISOString()))]);
+     $('#bPlans').textContent=a?a+' на согласовании':'';$('#bLeads').textContent=b?b+' новых':'';$('#bBook').textContent=c?c+' предстоит':''}
+
+    /* раздел «Планировки»: диалоги, проекты, согласование */
+    async function refreshPlans(){
+     if(PROF.role==='owner')await refreshTeam();
+     const[cv,pj]=await Promise.all([
+      sb.from('conversations').select('id,status,designer_id,client:profiles!conversations_client_id_fkey(full_name,username),designer:profiles!conversations_designer_id_fkey(full_name)').order('updated_at',{ascending:false}),
+      sb.from('projects').select('id,title,status,price,conversation_id,submitted_at').order('submitted_at',{ascending:false})]);
+     ST.list=cv.data||[];ST.projects=pj.data||[];
+     $('#convList').innerHTML=ST.list.length?ST.list.map(c=>{const n=ST.projects.filter(p=>p.conversation_id===c.id&&p.status==='submitted').length;
+      return `<button class="chip" data-cid="${c.id}" aria-pressed="${c.id===ST.id}" style="width:100%;margin-bottom:8px">${esc(c.client&&c.client.full_name||'Клиент')}<small>@${esc(c.client&&c.client.username||'')} · ${c.designer?esc(c.designer.full_name):'без дизайнера'}${n?' · на согласовании: '+n:''}</small></button>`}).join(''):'<p class="who">Диалогов пока нет.</p>';
+     if(ST.id)renderConvProjects()}
+    function renderConvProjects(){const box=$('#stProjects'),list=ST.projects.filter(p=>p.conversation_id===ST.id);box.hidden=!ST.id;
+     box.innerHTML='<div class="who" style="margin-bottom:6px">Проекты клиента</div>'+(list.length?list.map(p=>`<div class="send" style="align-items:center;margin-bottom:6px;flex-wrap:wrap"><span style="flex:1"><b>${esc(p.title)}</b> <span class="who">${esc(fmtD(p.submitted_at))} · ≈ ${fmt(+p.price)}</span></span><span class="badge b-${p.status}">${PST[p.status]||p.status}</span><button class="chip" data-rv="${p.id}">${p.status==='submitted'?'Проверить':'Открыть'}</button></div>`).join(''):'<p class="who" style="margin:0">Клиент ещё не отправлял проекты.</p>')}
+    $('#stProjects').addEventListener('click',e=>{const b=e.target.closest('[data-rv]');if(b)openReview(b.dataset.rv)});
     async function refreshTeam(){
      const{data}=await sb.from('profiles').select('id,username,full_name').eq('role','designer').order('full_name');ST.designers=data||[];
      $('#teamList').innerHTML=ST.designers.length?ST.designers.map(d=>`<div class="send" style="margin-bottom:6px;align-items:center"><span style="flex:1">${esc(d.full_name)} <span class="who">@${esc(d.username)}</span></span><button class="chip" data-unrole="${d.id}">Снять</button></div>`).join(''):'<p class="who">Дизайнеров пока нет.</p>'}
@@ -944,10 +1268,72 @@
      ST.id=b.dataset.cid;ST.seen=new Set();const c=ST.list.find(x=>x.id===ST.id);if(!c)return;
      [...$('#convList').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
      $('#stTitle').textContent=(c.client&&c.client.full_name||'Клиент')+' (@'+(c.client&&c.client.username||'')+')';
-     $('#stChat').innerHTML='';$('#stForm').hidden=false;renderAssign(c);
+     $('#stChat').innerHTML='';$('#stForm').hidden=false;renderAssign(c);renderConvProjects();
      const{data}=await sb.from('messages').select('*').eq('conversation_id',ST.id).order('created_at');
      (data||[]).forEach(m=>renderMsg($('#stChat'),m,ST.seen))});
     $('#stForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#stIn').value.trim();if(!v||!ST.id)return;$('#stIn').value='';postMsg(ST,$('#stChat'),v)});
+
+    /* окно проверки проекта */
+    const RV={p:null,calc:null,adj:[]};
+    const rvmsg=t=>showMsg('#rvMsg',t);
+    async function openReview(id){
+     const{data:p,error}=await sb.from('projects').select('id,title,status,price,config,calc,review_note,conversation_id').eq('id',id).single();
+     if(error||!p)return gtoast('Не удалось загрузить проект');
+     RV.p=p;RV.calc=(p.status==='approved'||p.status==='paid')&&p.calc?p.calc:calcProject(p.config);
+     RV.adj=(RV.calc.adjustments||[]).map(a=>({name:a.name,amount:a.amount}));
+     const conv=ST.list.find(c=>c.id===p.conversation_id),editable=p.status==='submitted';
+     $('#rvT').textContent=p.title;$('#rvMeta').textContent=(conv&&conv.client?conv.client.full_name:'Клиент')+' · '+(PST[p.status]||p.status);
+     $('#rvNote').value=p.review_note||'';$('#rvNote').disabled=!editable;
+     $('#rvOk').hidden=$('#rvRev').hidden=!editable;$('#rvAdjBox').hidden=!editable;
+     renderAdj();renderRvCalc();rvmsg('');$('#reviewModal').hidden=false}
+    function renderRvCalc(){RV.calc.adjustments=RV.adj.map(a=>({name:String(a.name||'').slice(0,80),amount:Math.round(+a.amount||0)}));sumCalc(RV.calc);$('#rvCalc').innerHTML=calcHTML(RV.calc)}
+    function renderAdj(){$('#rvAdj').innerHTML=RV.adj.map((a,i)=>`<div class="send" style="margin-bottom:6px" data-ai="${i}"><input class="ai-name" placeholder="Название (например, скидка)" maxlength="80" value="${esc(a.name)}" aria-label="Название"><input class="ai-amt" type="number" step="1000" placeholder="Сумма, ₽ (минус — скидка)" value="${esc(a.amount)}" aria-label="Сумма" style="max-width:200px"><button class="chip" type="button" data-ad="${i}" aria-label="Удалить">×</button></div>`).join('')}
+    $('#rvAddAdj').onclick=()=>{RV.adj.push({name:'',amount:0});renderAdj()};
+    $('#rvAdj').addEventListener('input',e=>{const row=e.target.closest('[data-ai]');if(!row)return;const a=RV.adj[+row.dataset.ai];
+     if(e.target.classList.contains('ai-name'))a.name=e.target.value;else a.amount=e.target.value;renderRvCalc()});
+    $('#rvAdj').addEventListener('click',e=>{const b=e.target.closest('[data-ad]');if(!b)return;RV.adj.splice(+b.dataset.ad,1);renderAdj();renderRvCalc()});
+    $('#rvX').onclick=()=>$('#reviewModal').hidden=true;
+    $('#rv3d').onclick=()=>{$('#reviewModal').hidden=true;loadProject(RV.p.config,null,true)};
+    async function decide(decision){if(!RV.p)return;const note=$('#rvNote').value.trim();
+     if(decision==='revision'&&!note)return rvmsg('Напишите, что нужно доработать.');
+     if(decision==='approved'&&RV.adj.some(a=>(+a.amount||0)!==0&&!String(a.name||'').trim()))return rvmsg('Укажите название для каждой корректировки.');
+     $('#rvOk').disabled=$('#rvRev').disabled=true;
+     if(decision==='approved')renderRvCalc();
+     const{error}=await sb.rpc('review_project',{p_id:RV.p.id,p_decision:decision,p_note:note||null,p_calc:decision==='approved'?RV.calc:null});
+     $('#rvOk').disabled=$('#rvRev').disabled=false;
+     if(error)return rvmsg(error.message);
+     $('#reviewModal').hidden=true;gtoast(decision==='approved'?'Проект согласован, клиент увидит расчёт':'Проект возвращён на доработку');refreshStaff()}
+    $('#rvOk').onclick=()=>decide('approved');
+    $('#rvRev').onclick=()=>decide('revision');
+
+    /* раздел «Обращения» (форма внизу главной страницы) */
+    async function refreshLeads(){
+     let q=sb.from('leads').select('id,name,phone,status,created_at,taker:profiles!leads_taken_by_fkey(full_name)').order('created_at',{ascending:false}).limit(200);
+     if(ST.leadFilter!=='all')q=q.eq('status',ST.leadFilter);
+     const{data,error}=await q;
+     if(error){$('#leadList').innerHTML='<p class="who">Не удалось загрузить обращения.</p>';return}
+     $('#leadList').innerHTML=(data&&data.length)?data.map(l=>`<div class="card" style="margin-bottom:10px"><div class="send" style="align-items:center;flex-wrap:wrap"><b style="flex:1">${esc(l.name)}</b><span class="badge b-${LCLS[l.status]}">${LST[l.status]}</span></div><p style="margin:6px 0"><a href="tel:${esc(l.phone.replace(/[^\d+]/g,''))}">${esc(l.phone)}</a> <span class="who">· ${esc(fmtDT(l.created_at))}${l.taker?' · взял(а): '+esc(l.taker.full_name):''}</span></p><div class="row">${l.status==='new'?`<button class="btn" data-la="take" data-id="${l.id}">Взять в работу</button>`:''}${l.status==='in_work'?`<button class="btn" data-la="done" data-id="${l.id}">Закрыть</button>`:''}${l.status==='done'?`<button class="btn ghost" data-la="take" data-id="${l.id}">Вернуть в работу</button>`:''}</div></div>`).join(''):'<p class="who">Обращений нет.</p>'}
+    $('#leadFilters').addEventListener('click',e=>{const b=e.target.closest('[data-lf]');if(!b)return;ST.leadFilter=b.dataset.lf;
+     [...$('#leadFilters').children].forEach(x=>x.setAttribute('aria-pressed',x===b));refreshLeads()});
+    $('#leadList').addEventListener('click',async e=>{const b=e.target.closest('[data-la]');if(!b)return;
+     const patch=b.dataset.la==='done'?{status:'done'}:{status:'in_work',taken_by:PROF.id};
+     const{error}=await sb.from('leads').update(patch).eq('id',b.dataset.id);
+     gtoast(error?'Ошибка: '+error.message:'Сохранено');refreshStaff()});
+
+    /* раздел «Записи на консультацию» */
+    async function refreshBookings(){
+     const{data,error}=await sb.from('bookings').select('id,starts_at,status,topic,designer_id,client:profiles!bookings_client_id_fkey(full_name,username),designer:profiles!bookings_designer_id_fkey(full_name),project:projects(title)').gte('starts_at',new Date(Date.now()-7*864e5).toISOString()).order('starts_at').limit(200);
+     if(error){$('#bookList').innerHTML='<p class="who">Не удалось загрузить записи.</p>';return}
+     const now=Date.now();
+     $('#bookList').innerHTML=(data&&data.length)?data.map(b=>{const past=new Date(b.starts_at).getTime()<now,
+      st=b.status==='cancelled'?['Отменена','revision']:b.status==='done'?['Проведена','approved']:past?['Время прошло','paid']:['Запланирована','submitted'],
+      mine=b.designer_id===PROF.id,canAct=b.status==='booked'&&(PROF.role==='owner'||mine||!b.designer_id);
+      return `<div class="card" style="margin-bottom:10px"><div class="send" style="align-items:center;flex-wrap:wrap"><b style="flex:1">${esc(fmtDT(b.starts_at))}</b><span class="badge b-${st[1]}">${st[0]}</span></div><p style="margin:6px 0">${esc(b.client&&b.client.full_name||'Клиент')} <span class="who">@${esc(b.client&&b.client.username||'')} · ${b.designer?'дизайнер: '+esc(b.designer.full_name):'дизайнер не назначен'}${b.project?' · проект «'+esc(b.project.title)+'»':''}</span></p>${b.topic?`<p style="margin:6px 0">${esc(b.topic)}</p>`:''}<div class="row">${(b.status==='booked'&&!b.designer_id)?`<button class="btn" data-ba="claim" data-id="${b.id}">Взять себе</button>`:''}${canAct&&b.designer_id?`<button class="btn" data-ba="done" data-id="${b.id}">Отметить проведённой</button>`:''}${canAct?`<button class="btn ghost" data-ba="cancel" data-id="${b.id}">Отменить</button>`:''}</div></div>`}).join(''):'<p class="who">Записей нет.</p>'}
+    $('#bookList').addEventListener('click',async e=>{const b=e.target.closest('[data-ba]');if(!b)return;
+     const a=b.dataset.ba,patch=a==='claim'?{designer_id:PROF.id}:a==='done'?{status:'done'}:{status:'cancelled'};
+     if(a==='cancel'&&!confirm('Отменить запись клиента?'))return;
+     const{error}=await sb.from('bookings').update(patch).eq('id',b.dataset.id);
+     gtoast(error?'Ошибка: '+error.message:'Сохранено');refreshStaff()});
 
     authUI();loadProfile();
 </script>
