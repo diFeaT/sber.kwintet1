@@ -72,7 +72,7 @@
         [hidden]{display:none!important}
         @media(max-width:800px){.hero,.cfg{grid-template-columns:1fr}.preview{position:static}section{padding:44px 0}}
         @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-        
+
         select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
         .cfg3{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
         .cfg3>#panel{display:grid;gap:14px}
@@ -240,11 +240,11 @@
         <section id="contact" style="padding-top:20px">
             <div class="wrap">
                 <h2>Получить консультацию</h2>
-                <p>Оставьте телефон, и менеджер перезвонит в течение 15 минут в рабочее время.</p>
+                <p>Оставьте телефон, и менеджер свяжется с вами в течение 15 минут в рабочее время.</p>
                 <form class="lead" id="lead">
                     <input required name="name" placeholder="Ваше имя" aria-label="Имя">
                     <input required name="phone" type="tel" placeholder="Телефон" aria-label="Телефон">
-                    <input required name="name" placeholder="Тема обращения" aria-label="Ваша проблема">
+                    <input required name="name" placeholder="Тема обращения" aria-label="Имя">
                     <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true"
                            style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
                     <button class="btn" type="submit">Отправить обращение</button>
@@ -397,6 +397,20 @@
             </div>
 
             <section id="pt-profile" style="padding:0;max-width:640px">
+                <div class="card" id="phoneCard" hidden style="margin-bottom:16px"><h3 style="margin-top:0">Телефон для
+                    входа</h3>
+                    <p id="phCur" class="who" style="margin:0 0 10px"></p>
+                    <form id="linkForm" class="lead" style="max-width:none" novalidate>
+                        <input id="lkNum" name="tel" type="tel" inputmode="tel" autocomplete="tel"
+                               placeholder="+7 999 123-45-67" aria-label="Номер телефона">
+                        <input id="lkPass" name="current-password" type="password" autocomplete="current-password"
+                               placeholder="Текущий пароль" aria-label="Текущий пароль">
+                        <label style="display:flex;gap:8px;align-items:flex-start;font-size:.95rem;color:var(--muted)"><input
+                                type="checkbox" id="lkOk" style="width:auto;margin-top:4px"><span>Согласен на обработку номера телефона для входа в аккаунт и связи по проекту</span></label>
+                        <button class="btn" type="submit" id="lkSend">Добавить номер</button>
+                    </form>
+                    <div class="ok" id="lkMsg" role="status" style="margin-top:10px"></div>
+                </div>
                 <form id="pForm" class="lead" style="max-width:none" novalidate>
                     <label class="fld">Имя и Фамилия<input id="pName" autocomplete="name"></label>
                     <label class="fld">Юзернейм<input id="pUser" autocomplete="off" autocapitalize="none"
@@ -576,6 +590,25 @@
                 <input id="sPass" name="new-password" type="password" placeholder="Пароль (от 6 символов)"
                        autocomplete="new-password" aria-label="Пароль">
                 <button class="btn" type="submit" id="sSubmit">Создать аккаунт</button>
+                <button type="button" id="goPhoneUp" hidden
+                        style="background:none;border:0;color:var(--muted);text-align:left;padding:6px 0;font:inherit;cursor:pointer;text-decoration:underline">
+                    Зарегистрироваться по номеру телефона
+                </button>
+            </form>
+            <form id="phoneSignupForm" class="lead" style="max-width:none" method="post" action="#" novalidate hidden>
+                <input id="rName" name="name" placeholder="Имя и Фамилия" autocomplete="name"
+                       aria-label="Имя и Фамилия">
+                <input id="rPhone" name="tel" type="tel" inputmode="tel"
+                       placeholder="Телефон, например +7 999 123-45-67" autocomplete="tel" aria-label="Телефон">
+                <input id="rPass" name="new-password" type="password" placeholder="Пароль (от 6 символов)"
+                       autocomplete="new-password" aria-label="Пароль">
+                <label style="display:flex;gap:8px;align-items:flex-start;font-size:.95rem;color:var(--muted)"><input
+                        type="checkbox" id="rOk" style="width:auto;margin-top:4px"><span>Согласен на обработку номера телефона для входа в аккаунт и связи по проекту</span></label>
+                <button class="btn" type="submit" id="rSubmit">Зарегистрироваться</button>
+                <button type="button" id="goEmailUp"
+                        style="background:none;border:0;color:var(--muted);text-align:left;padding:6px 0;font:inherit;cursor:pointer;text-decoration:underline">
+                    Зарегистрироваться по почте
+                </button>
             </form>
             <div class="ok" id="aMsg" role="alert" style="margin-top:12px"></div>
             <p class="who" style="margin:12px 0 0">Аккаунт хранится на сервере: войти можно с любого устройства. <a
@@ -599,7 +632,7 @@
     const ROOFS=[{id:'flat',name:'Плоская',p:0},{id:'gable',name:'Двускатная',p:120000}];
     const EXTRAS=[{id:'terr',name:'Терраса 20 м²',p:180000},{id:'heat',name:'Тёплый пол',p:90000},{id:'smart',name:'Умный дом',p:110000},{id:'sun',name:'Солнечные панели',p:240000}];
     let S={model:'oz',facade:'wood',roof:'gable',extras:[],step:0};
-    
+
     function house(m,f,r,terr,sun){
      const w=m.w,x=(460-w)/2,t=terr?110:0;
      const roof=r==='gable'?`<polygon points="${x-10},170 ${x+w/2},120 ${x+w+10},170" fill="#2a3532"/>`:`<rect x="${x-10}" y="160" width="${w+20}" height="12" fill="#2a3532"/>`;
@@ -609,7 +642,7 @@
     }
     const fac=id=>FACADES.find(f=>f.id===id), mod=id=>MODELS.find(m=>m.id===id);
     function price(){const m=mod(S.model);return m.price+fac(S.facade).p+ROOFS.find(r=>r.id===S.roof).p+S.extras.reduce((a,id)=>a+EXTRAS.find(e=>e.id===id).p,0)}
-    
+
     /* навигация */
     function go(v,anchor){
      $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-profile').hidden=v!=='profile';$('#view-staff').hidden=v!=='staff';$('#view-calc').hidden=v!=='calc';$('#view-chat').hidden=true;
@@ -624,12 +657,12 @@
      const p=b.dataset.pick;if(p){S.model=p;S.projectId=null;S.projectTitle=''}
      go(b.dataset.go,b.dataset.anchor);
     });
-    
+
     /* главная */
     $('#heroArt').innerHTML=house(MODELS[1],'#b9834a','gable',true,false);
     $('#projGrid').innerHTML=MODELS.map((m,i)=>`<article class="card proj"><div class="pic">${house(m,FACADES[i].c,i?'gable':'flat',i>0,false)}</div><div class="txt"><h3>${m.name}</h3><span class="who">${m.area} м² · ${m.rooms}</span><span class="price">от ${fmt(m.price)}</span><button class="btn" data-go="config" data-pick="${m.id}">Настроить этот дом</button></div></article>`).join('');
     $('#lead').addEventListener('submit',e=>{e.preventDefault();submitLead(e.target)});
-    
+
     /* 3D-конструктор */
     /* three.js (3D-конструктор) подгружается только когда нужен: сначала vendor/three.min.js, затем CDN.
        Если он недоступен в сети пользователя, остальной сайт (вход, кабинет, чат) продолжает работать. */
@@ -652,7 +685,7 @@
     let R,cam,scene,wallMat,roofMat,selBox,el,stage,inited=false,uid=0,dead=[],drag=null,mode=null,pd=0,lw=0,lh=0,tt;
     let ray=null,plane=null;
     const cv={th:.6,ph:1,d:24,gth:.6,gph:1,gd:24},P=new Map();
-    
+
     function forest(){const c=document.createElement('canvas');c.width=1400;c.height=800;const g=c.getContext('2d');
      const s=g.createLinearGradient(0,0,0,800);s.addColorStop(0,'#d5e4e0');s.addColorStop(.5,'#b3cbbf');s.addColorStop(1,'#6b8c74');g.fillStyle=s;g.fillRect(0,0,1400,800);
      let sd=7;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
@@ -663,14 +696,14 @@
        g.fillRect(x-3,y-th*.1,6,th*.1+8)}
       g.fillStyle='rgba(225,238,232,.16)';g.fillRect(0,base-60,1400,140)});
      return c.toDataURL('image/jpeg',.85)}
-    
+
     function tex(t,c){const k=document.createElement('canvas');k.width=k.height=128;const g=k.getContext('2d');g.fillStyle=c;g.fillRect(0,0,128,128);g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;
      if(t==='wood'){for(let x=0;x<128;x+=16){g.beginPath();g.moveTo(x,0);g.lineTo(x,128);g.stroke()}}
      else if(t==='brick'){for(let y=0;y<128;y+=16){g.beginPath();g.moveTo(0,y);g.lineTo(128,y);g.stroke();for(let x=(y/16%2)*16;x<128;x+=32){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+16);g.stroke()}}}
      else if(t==='stone'){for(let i=0;i<400;i++){g.fillStyle='rgba(0,0,0,'+Math.random()*.08+')';g.fillRect(Math.random()*128,Math.random()*128,3,3)}}
      return new THREE.CanvasTexture(k)}
     function applyWall(){const w=WALLS.find(x=>x.id===S.wall);wallMat.map=tex(w.t,w.c);wallMat.color.set(0xffffff);wallMat.needsUpdate=true}
-    
+
     function free(x,z,w,d,ex){return x>=0&&z>=0&&x+w<=GW&&z+d<=GD&&!S.rooms.some(o=>o!==ex&&x<o.x+o.w&&o.x<x+w&&z<o.z+o.d&&o.z<z+d)}
     function spot(w,d){let cx=GW/2,cz=GD/2;const n=S.rooms.length;if(n){cx=S.rooms.reduce((a,o)=>a+o.x+o.w/2,0)/n;cz=S.rooms.reduce((a,o)=>a+o.z+o.d/2,0)/n}
      let best=null,bd=1e9;for(let x=0;x<=GW-w;x++)for(let z=0;z<=GD-d;z++)if(free(x,z,w,d)){const q=(x+w/2-cx)**2+(z+d/2-cz)**2;if(q<bd){bd=q;best=[x,z]}}return best}
@@ -704,7 +737,7 @@
     function toast(t){const o=$('#toast');o.textContent=t;o.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>o.style.opacity=0,2800)}
     function loadPreset(id){const tok=++uid;S.rooms.forEach(r=>{r.gone=true;dead.push(r)});S.rooms=[];S.sel=null;
      (PRE[id]||PRE.oz).forEach((a,i)=>setTimeout(()=>{if(S.loaded===id&&inited)addRoom(a[0],a[1],a[2])},250+i*280));syncUI()}
-    
+
     function syncUI(){const r=S.sel,tot=S.rooms.reduce((a,o)=>a+o.w*o.d,0);
      $('#tArea').textContent=`Комнат: ${S.rooms.length}, общая площадь: ${tot} м²`;$('#tPrice').textContent='≈ '+fmt(price());
      $('#selT').textContent=r?TYPES[r.type].n+', '+r.w*r.d+' м²':'Выберите комнату на модели';
@@ -713,12 +746,12 @@
      const ch=(a,arr,cur)=>arr.map(i=>`<button class="chip" data-a="${a}:${i.id}" aria-pressed="${cur===i.id}">${i.n}<small>${i.p?'+ '+fmt(i.p)+'/м²':'входит в цену'}</small></button>`).join('');
      $('#oWall').innerHTML=ch('wall',WALLS,S.wall);$('#oFloor').innerHTML=ch('floor',FLOORS,S.floor);
      $('#oRoof').innerHTML=`<button class="chip" data-a="roof" aria-pressed="${S.roof}">Показывать крышу<small>входит в стоимость</small></button>`}
-    
+
     const ndc=e=>{const b=el.getBoundingClientRect();return new THREE.Vector2((e.clientX-b.left)/b.width*2-1,-(e.clientY-b.top)/b.height*2+1)};
     function hit(e){ray.setFromCamera(ndc(e),cam);const t=[];S.rooms.forEach(r=>{t.push(r.fl);if(!TYPES[r.type].open)t.push(...r.ws)});const i=ray.intersectObjects(t,false)[0];return i?i.object.userData.r:null}
     function gpt(e){ray.setFromCamera(ndc(e),cam);const p=new THREE.Vector3();return ray.ray.intersectPlane(plane,p)||p}
     const d2=()=>{const a=[...P.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
-    
+
     function init(){
      BOX=new THREE.BoxGeometry(1,1,1);ray=new THREE.Raycaster();plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
      el=$('#c3d');stage=$('#stage');R=new THREE.WebGLRenderer({canvas:el,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -767,7 +800,7 @@
     function render(){if(!inited){inited=true;init()}
      if(S.loaded!==S.model){S.loaded=S.model;loadPreset(S.model||'oz')}
      $('#cfgBox').hidden=false;syncUI()}
-    
+
     /* интерьер: расстановка мебели */
     const FLIST={sofa:{n:'Диван',w:2,d:.9,c:'#8a6a8f',ic:'🛋️'},armchair:{n:'Кресло',w:.8,d:.8,c:'#b98a5a',ic:'🪑'},tv:{n:'Телевизор',w:1.2,d:.15,c:'#2a2a2a',ic:'📺'},table:{n:'Стол',w:1.2,d:.8,c:'#a97c50',ic:'🍽️'},bookshelf:{n:'Стеллаж',w:1,d:.3,c:'#7a5a3a',ic:'📚'},bed:{n:'Кровать',w:1.6,d:2,c:'#c79a9a',ic:'🛏️'},wardrobe:{n:'Шкаф',w:1.2,d:.6,c:'#6b5843',ic:'🚪'},nightstand:{n:'Тумба',w:.5,d:.4,c:'#8a7052',ic:'🕯️'},desk:{n:'Письменный стол',w:1.2,d:.6,c:'#9c8158',ic:'💻'},kitchen:{n:'Кухня',w:2,d:.6,c:'#7d9490',ic:'🍳'},fridge:{n:'Холодильник',w:.7,d:.7,c:'#c9d2d3',ic:'🧊'},sink:{n:'Раковина',w:.6,d:.5,c:'#cfd8da',ic:'🚰'},toilet:{n:'Унитаз',w:.4,d:.6,c:'#e4e9ea',ic:'🚽'},bathtub:{n:'Ванна',w:1.7,d:.75,c:'#dfe6e7',ic:'🛁'}};
     const FPRICE={sofa:65000,armchair:28000,tv:55000,table:32000,bookshelf:24000,bed:78000,wardrobe:62000,nightstand:9000,desk:26000,kitchen:180000,fridge:85000,sink:22000,toilet:18000,bathtub:70000};
@@ -928,7 +961,7 @@
      drawInterior();if(Imode==='3d')syncScene3D()};
     $('#fDel').onclick=()=>{if(!Isel)return;Isel.dead=true;Isel=null;$('#furnSel').hidden=true;drawInterior()};
     $('#toChat2').onclick=()=>openSubmit('interior');
-    
+
     /* ===== Supabase: аккаунты, роли, диалоги, проекты, записи ===== */
     const cfg=window.APP_CONFIG||{};
     const cfgOk=!!(cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABASE_URL+cfg.SUPABASE_ANON_KEY));
@@ -946,7 +979,7 @@
     const isStaff=()=>!!PROF&&(PROF.role==='owner'||PROF.role==='designer');
     const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     function gtoast(t){const e=$('#gToast');e.textContent=t;e.style.opacity=1;clearTimeout(gtt);gtt=setTimeout(()=>e.style.opacity=0,3800)}
-    const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/,USER_RE=/^[a-z0-9_]{3,20}$/i;
+    const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/,USER_RE=/^(?=.*[a-z_])[a-z0-9_]{3,20}$/i;
     const okName=n=>n.length>=3&&n.split(' ').length>=2;
     const redirect=()=>location.origin+location.pathname;
     const PST={submitted:'На согласовании',revision:'На доработке',approved:'Согласован',paid:'Оплачен'};
@@ -955,27 +988,31 @@
     const fmtD=iso=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,day:'numeric',month:'long',year:'numeric'}).format(new Date(iso));
     const hhmm=d=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,hour:'2-digit',minute:'2-digit'}).format(d);
     const showMsg=(sel,t)=>{const m=$(sel);m.textContent=t;m.style.display=t?'block':'none'};
-    
+
+    let HAS_PHONE=false; // есть ли в базе колонка phone (выполнена ли миграция 04)
     async function loadProfile(){
      if(!sb)return;
      const{data:{session}}=await sb.auth.getSession();
      if(!session){PROF=null;authUI();return}
-     const{data}=await sb.from('profiles').select('id,username,full_name,role').eq('id',session.user.id).maybeSingle();
-     PROF=data?{...data,email:session.user.email}:null;authUI();
+     let r=await sb.from('profiles').select('id,username,full_name,role,phone').eq('id',session.user.id).maybeSingle();
+     if(r.error){r=await sb.from('profiles').select('id,username,full_name,role').eq('id',session.user.id).maybeSingle();HAS_PHONE=false}else HAS_PHONE=true;
+     const su=session.user||{},authPhone=su.phone?'+'+String(su.phone).replace(/\D/g,''):'';
+     PROF=r.data?{...r.data,email:su.email||'',phone:r.data.phone||authPhone}:null;authUI();
     }
     function authUI(){const p=PROF;$('#authBtn').textContent=p?'👤 '+p.full_name:'Войти';$('#outBtn').hidden=!p;$('#staffBtn').hidden=!isStaff();
      const n=document.querySelector('#lead [name=name]');if(p&&n&&!n.value)n.value=p.full_name}
     async function signOut(){if(sb){await sb.removeAllChannels();await sb.auth.signOut()}
      PROF=null;CH.id=null;ST.id=null;S.projectId=null;S.projectTitle='';authUI();go('home')}
-    
+
     /* окна: общее закрытие по Esc и клику на фон */
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal:not([hidden])').forEach(m=>m.hidden=true)});
     document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal'))e.target.hidden=true});
-    
+
     /* окно входа / регистрации: две отдельные формы, чтобы браузер мог запомнить и подставить логин */
     const amsg=t=>showMsg('#aMsg',t);
     function setMode(m){amode=m;[...$('#authTabs').children].forEach(c=>c.setAttribute('aria-pressed',c.dataset.t===m));
-     $('#loginForm').hidden=m!=='in';$('#signupForm').hidden=m!=='up';
+     [...$('#authTabs').children].forEach(c=>c.setAttribute('aria-pressed',c.dataset.t===(m==='upph'?'up':m)));
+     $('#loginForm').hidden=m!=='in';$('#signupForm').hidden=m!=='up';$('#phoneSignupForm').hidden=m!=='upph';
      $('#authT').textContent=m==='in'?'Вход':'Регистрация';amsg(sb?'':NOSB)}
     function openAuth(){setMode('in');$('#authModal').hidden=false;setTimeout(()=>$('#lLogin').focus(),30)}
     function closeAuth(){$('#authModal').hidden=true}
@@ -985,24 +1022,29 @@
     // Сообщение об ошибке: сетевой сбой и ошибка сервера различаются, техническая причина показывается, чтобы было что проверять.
     const netDetail=e=>{const m=String((e&&e.message)||e||'').replace(/^(Type|Abort|AuthRetryableFetch)?Error:\s*/,'').slice(0,100);return m?' Техническая причина: '+m+'.':''};
     const explain=e=>isNetErr(e)?NETMSG+netDetail(e):'Ошибка сервера: '+String((e&&e.message)||e||'неизвестная ошибка').slice(0,150);
+    function loginError(er){
+     if(isNetErr(er))return explain(er);
+     if(/confirm/i.test(er.message))return 'Подтвердите почту по ссылке из письма.';
+     if(er.status===429)return 'Слишком много попыток входа. Подождите несколько минут и попробуйте снова.';
+     if(er.status>=500)return explain(er);
+     return 'Неверный логин или пароль.'}
     async function doLogin(lg,pass){ // возвращает текст ошибки или пустую строку при успехе
      if(!sb)return NOSB;
      if(!lg)return 'Введите почту или юзернейм.';
      if(pass.length<6)return 'Пароль должен быть не короче 6 символов.';
+     const ph=looksPhone(lg);
+     if(ph){let r2;try{r2=await sb.auth.signInWithPassword({phone:ph,password:pass})}catch(e){return explain(e)}
+      if(r2.error)return loginError(r2.error);
+      rememberCreds(lg,pass);return ''}
      let email;try{email=await emailFor(lg)}catch(e){return explain(e.raw||e)}
      if(!email)return 'Неверный логин или пароль.';
      let res;try{res=await sb.auth.signInWithPassword({email,password:pass})}catch(e){return explain(e)}
-     if(res.error){const er=res.error;
-      if(isNetErr(er))return explain(er);
-      if(/confirm/i.test(er.message))return 'Подтвердите почту по ссылке из письма.';
-      if(er.status===429)return 'Слишком много попыток входа. Подождите несколько минут и попробуйте снова.';
-      if(er.status>=500)return explain(er);
-      return 'Неверный логин или пароль.'}
+     if(res.error)return loginError(res.error);
      rememberCreds(lg,pass);return ''}
     async function doSignup(nm,un,ml,pass){ // возвращает {ok:true} или {msg:'...'}
      if(!sb)return{msg:NOSB};
      if(!okName(nm))return{msg:'Укажите имя и фамилию.'};
-     if(!USER_RE.test(un))return{msg:'Юзернейм: 3–20 символов, латиница, цифры и _.'};
+     if(!USER_RE.test(un))return{msg:'Юзернейм: 3–20 символов, латиница, цифры и _; нужна хотя бы одна буква.'};
      if(!EMAIL_RE.test(ml))return{msg:'Введите корректную почту.'};
      if(pass.length<6)return{msg:'Пароль должен быть не короче 6 символов.'};
      let t;try{t=await sb.rpc('username_taken',{u:un})}catch(e){return{msg:explain(e)}}
@@ -1028,13 +1070,77 @@
       if(r.ok){closeAuth();$('#sPass').value=''}else amsg(r.msg)}
      catch(x){amsg('Не удалось связаться с сервером. Попробуйте ещё раз.')}
      finally{btn.disabled=false}});
-    $('#aForgot').onclick=async()=>{if(!sb)return amsg(NOSB);const lg=$('#lLogin').value.trim();if(!lg)return amsg('Введите почту или юзернейм в поле выше.');
+    $('#aForgot').onclick=async()=>{if(!sb)return amsg(NOSB);const lg=$('#lLogin').value.trim();if(!lg)return amsg('Введите почту, юзернейм или телефон в поле выше.');
+     if(looksPhone(lg))return amsg('Пароль восстанавливается по почте. Если к аккаунту почта не привязана, напишите нам. Чтобы не потерять доступ, добавьте почту в личном кабинете.');
      try{const email=await emailFor(lg);if(email)await sb.auth.resetPasswordForEmail(email,{redirectTo:redirect()})}catch(e){return amsg(explain(e.raw||e))}
      amsg('Если такой аккаунт есть, мы отправили письмо со ссылкой для смены пароля.')};
     if(sb)sb.auth.onAuthStateChange(ev=>{
      if(ev==='PASSWORD_RECOVERY'){recovery=true;setTimeout(async()=>{await loadProfile();openProfile('profile')},0)}
      else if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(ev)){setTimeout(loadProfile,0)}});
-    
+
+    /* ===== вход и регистрация по номеру телефона и паролю (без кода из SMS) ===== */
+    const PHONE_ON=cfg.PHONE_AUTH===true;
+    // '8 (999) 123-45-67', '+7 999 123 45 67', '9991234567' -> '+79991234567'; иностранные номера только с «+»
+    function normPhone(v){let d=String(v||'').trim();
+     if(d.startsWith('+')){const x=d.replace(/\D/g,'');if(x[0]==='7'&&x.length!==11)return '';return x.length>=8&&x.length<=15?'+'+x:''}
+     d=d.replace(/\D/g,'');
+     if(d.length===11&&(d[0]==='8'||d[0]==='7'))return '+7'+d.slice(1);
+     if(d.length===10)return '+7'+d;
+     return ''}
+    const showPhone=p=>String(p||'').replace(/^\+7(\d{3})(\d{3})(\d{2})(\d{2})$/,'+7 $1 $2-$3-$4');
+    // Похоже ли введённое на номер телефона (а не на почту или юзернейм): только цифры, пробелы, скобки, дефисы, «+»
+    const looksPhone=v=>(PHONE_ON&&!String(v).includes('@')&&/^[+\d\s\-()]+$/.test(String(v).trim()))?normPhone(v):'';
+    // Повторная проверка пароля перед чувствительными действиями; работает и для аккаунтов без почты
+    async function reauth(pw){
+     if(!pw||!PROF)return false;
+     const id=PROF.email?{email:PROF.email}:(PROF.phone?{phone:PROF.phone}:null);
+     if(!id)return false;
+     try{const{error}=await sb.auth.signInWithPassword({...id,password:pw});return !error}catch(e){return false}}
+    async function doSignupPhone(nm,phoneRaw,pass,consent){ // {ok:true} или {msg:'...'}
+     if(!sb)return{msg:NOSB};
+     if(!PHONE_ON)return{msg:'Регистрация по телефону не включена на этом сайте.'};
+     if(!okName(nm))return{msg:'Укажите имя и фамилию.'};
+     const ph=normPhone(phoneRaw);if(!ph)return{msg:'Введите номер телефона, например +7 999 123-45-67.'};
+     if(pass.length<6)return{msg:'Пароль должен быть не короче 6 символов.'};
+     if(!consent)return{msg:'Подтвердите согласие на обработку номера телефона.'};
+     let r;try{r=await sb.auth.signUp({phone:ph,password:pass,options:{data:{full_name:nm}}})}catch(e){return{msg:explain(e)}}
+     if(r.error){const m=String(r.error.message||'');
+      if(isNetErr(r.error))return{msg:explain(r.error)};
+      if(/already|registered/i.test(m))return{msg:'Этот номер уже зарегистрирован. Войдите по номеру и паролю.'};
+      if(/sms|provider|otp/i.test(m))return{msg:'Регистрация по телефону не настроена на сервере (см. README, раздел про вход по телефону).'};
+      return{msg:explain(r.error)}}
+     if(!r.data||!r.data.session)return{msg:'На сервере включено подтверждение номера по SMS, а этот сайт его не использует. Отключите «Enable phone confirmations» в настройках Supabase (см. README).'};
+     rememberCreds(ph,pass,nm);return{ok:true}}
+    $('#phoneSignupForm').addEventListener('submit',async e=>{e.preventDefault();amsg('');const btn=$('#rSubmit');btn.disabled=true;
+     try{const r=await doSignupPhone($('#rName').value.trim().replace(/\s+/g,' '),$('#rPhone').value,$('#rPass').value,$('#rOk').checked);
+      if(r.ok){closeAuth();$('#rPass').value=''}else amsg(r.msg)}
+     catch(x){amsg(NETMSG)}
+     finally{btn.disabled=false}});
+    $('#goPhoneUp').onclick=()=>setMode('upph');
+    $('#goEmailUp').onclick=()=>setMode('up');
+    $('#goPhoneUp').hidden=!PHONE_ON;
+    if(PHONE_ON){$('#lLogin').placeholder='Почта, юзернейм или телефон';$('#lLogin').setAttribute('aria-label','Почта, юзернейм или телефон')}
+    /* карточка «Телефон для входа» в кабинете */
+    const lkmsg=t=>showMsg('#lkMsg',t);
+    function renderPhoneCard(){const c=$('#phoneCard');c.hidden=!PHONE_ON||!PROF;if(c.hidden)return;
+     $('#phCur').textContent=PROF.phone?'Ваш номер для входа: '+showPhone(PROF.phone)+'. Войти можно по номеру и вашему паролю.':'Номер не добавлен. Добавьте его, чтобы входить по номеру телефона и тому же паролю.';
+     $('#lkSend').textContent=PROF.phone?'Изменить номер':'Добавить номер';$('#lkPass').value='';lkmsg('')}
+    async function savePhone(raw,pass,consent){ // {ok:true,msg} или {msg}
+     if(!sb||!PROF)return{msg:NOSB};
+     const ph=normPhone(raw);if(!ph)return{msg:'Введите номер телефона, например +7 999 123-45-67.'};
+     if(!consent)return{msg:'Подтвердите согласие на обработку номера телефона.'};
+     if(!(await reauth(pass)))return{msg:'Введите текущий пароль, чтобы изменить номер.'};
+     let r;try{r=await sb.auth.updateUser({phone:ph})}catch(e){return{msg:explain(e)}}
+     if(r.error)return{msg:isNetErr(r.error)?explain(r.error):/already|registered/i.test(String(r.error.message))?'Этот номер уже привязан к другому аккаунту.':explain(r.error)};
+     if(r.data&&r.data.user&&r.data.user.new_phone)return{msg:'На сервере включено подтверждение номера по SMS, а этот сайт его не использует. Отключите «Enable phone confirmations» в настройках Supabase (см. README).'};
+     return{ok:true,msg:'Номер сохранён. Теперь можно входить по номеру и вашему паролю.'}}
+    $('#linkForm').addEventListener('submit',async e=>{e.preventDefault();lkmsg('');const btn=$('#lkSend');btn.disabled=true;
+     try{const r=await savePhone($('#lkNum').value,$('#lkPass').value,$('#lkOk').checked);
+      if(r.ok){await loadProfile();renderPhoneCard();$('#lkNum').value='';}
+      lkmsg(r.msg)}
+     catch(x){lkmsg(NETMSG)}
+     finally{btn.disabled=false}});
+
     /* обращения с формы внизу главной страницы */
     async function submitLead(form){const ok=$('#leadOk'),say=t=>{ok.textContent=t;ok.style.display='block'};
      const fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim();
@@ -1048,7 +1154,7 @@
      if(error)return say('Не удалось отправить обращение. Попробуйте ещё раз или позвоните нам.');
      try{localStorage.setItem('lead_ts',String(Date.now()))}catch(e){}
      say('Спасибо, '+name+'! Менеджер свяжется с вами в течение 15 минут в рабочее время.');form.reset()}
-    
+
     /* ===== расчёт стоимости ===== */
     const RATES={base:62000,terrace:30000,wet:15000,roof:8000,foundation:4500,foundationOpen:2500};
     function serializeProject(){return{v:2,wall:S.wall,floor:S.floor,roof:!!S.roof,
@@ -1082,7 +1188,7 @@
      if(adj.length)h+='<h3>Корректировки дизайнера</h3>'+tw('<tbody>'+adj.map(a=>tr(esc(a.name||'Корректировка'),m(a.amount))).join('')+'</tbody>');
      h+='<h3>Полная стоимость</h3>'+tw('<tbody>'+tr('Модули',m(c.modules))+tr('Фундамент',m(f.total))+tr('Мебель',m(c.furniture.total))+(adj.length?tr('Корректировки',m(adjSum)):'')+tr('<b style="font-size:1.25em">ИТОГО</b>','<b style="font-size:1.25em">'+m(c.total)+'</b>','tot')+'</tbody>');
      return h}
-    
+
     /* ===== сохранение и загрузка проектов в конструктор ===== */
     let LOADTOK=0;
     async function loadProject(c,meta,preview){
@@ -1101,7 +1207,7 @@
       addRoom(o.type,clamp(Math.round(+o.w)||T.w,1,GW),clamp(Math.round(+o.d)||T.d,1,GD),Math.round(+o.x),Math.round(+o.z),o);
       if(i===list.length-1){S.sel=null;syncUI()}},110*i));
      gtoast(preview?'Проект клиента открыт для просмотра. Изменения не сохраняются.':(meta&&meta.status==='paid'?'Проект оплачен: отправить изменения нельзя.':'Проект загружен. Если измените его и отправите снова, потребуется новое согласование.'))}
-    
+
     /* ===== личный кабинет ===== */
     let PTAB='profile',MY=[],CALCP=null;
     function openProfile(tab){PTAB=tab||'profile';go('profile')}
@@ -1111,7 +1217,8 @@
      [...$('#profTabs').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.pt===PTAB));
      ['profile','projects','bookings'].forEach(t=>$('#pt-'+t).hidden=t!==PTAB);
      if(PTAB==='profile'){$('#pName').value=PROF.full_name;$('#pUser').value=PROF.username;$('#pMail').value=PROF.email;$('#pOld').value='';$('#pNew').value='';
-      $('#pOld').closest('label').hidden=recovery;pmsg(recovery?'Введите новый пароль и нажмите «Сохранить».':'')}
+      $('#pOld').closest('label').hidden=recovery;$('#pMail').placeholder=PROF.email?'':'Добавьте почту: по ней можно восстановить пароль';
+      pmsg(recovery?'Введите новый пароль и нажмите «Сохранить».':(PROF.full_name==='Клиент'?'Укажите имя и фамилию: так вас увидит дизайнер.':''));renderPhoneCard()}
      if(PTAB==='projects')loadMyProjects();
      if(PTAB==='bookings')initBookings()}
     $('#profTabs').addEventListener('click',e=>{const b=e.target.closest('[data-pt]');if(b){PTAB=b.dataset.pt;renderProfile()}});
@@ -1121,24 +1228,22 @@
       const{error}=await sb.auth.updateUser({password:np});if(error)return pmsg(error.message);
       recovery=false;$('#pOld').closest('label').hidden=false;$('#pNew').value='';return pmsg('Пароль изменён.')}
      if(!okName(nm))return pmsg('Укажите имя и фамилию.');
-     if(!USER_RE.test(un))return pmsg('Юзернейм: 3–20 символов, латиница, цифры и _.');
-     if(!EMAIL_RE.test(ml))return pmsg('Введите корректную почту.');
+     if(!USER_RE.test(un))return pmsg('Юзернейм: 3–20 символов, латиница, цифры и _; нужна хотя бы одна буква.');
+     if(PROF.email?!EMAIL_RE.test(ml):(ml&&!EMAIL_RE.test(ml)))return pmsg('Введите корректную почту.');
      if(np&&np.length<6)return pmsg('Новый пароль должен быть не короче 6 символов.');
-     const{error:ae}=await sb.auth.signInWithPassword({email:PROF.email,password:old});
-     if(ae)return pmsg('Для сохранения введите текущий пароль.');
+     if(!(await reauth(old)))return pmsg('Для сохранения введите текущий пароль.');
      const{error:pe}=await sb.from('profiles').update({username:un,full_name:nm}).eq('id',PROF.id);
      if(pe)return pmsg(pe.code==='23505'?'Такой юзернейм уже занят.':'Не удалось сохранить: '+pe.message);
      let note='Данные сохранены.';
      if(np){const{error}=await sb.auth.updateUser({password:np});if(error)return pmsg(error.message);note+=' Пароль изменён.'}
-     if(ml!==PROF.email){const{error}=await sb.auth.updateUser({email:ml},{emailRedirectTo:redirect()});if(error)return pmsg(error.message);note+=' Подтвердите новый адрес по письму.'}
+     if(ml&&ml!==PROF.email){const{error}=await sb.auth.updateUser({email:ml},{emailRedirectTo:redirect()});if(error)return pmsg(error.message);note+=' Подтвердите новый адрес по письму.'}
      await loadProfile();$('#pOld').value='';$('#pNew').value='';pmsg(note)});
     $('#pOut').onclick=signOut;
     $('#pDel').onclick=async()=>{if(!sb||!PROF)return;
-     const{error:ae}=await sb.auth.signInWithPassword({email:PROF.email,password:$('#pOld').value});
-     if(ae)return pmsg('Для удаления введите текущий пароль.');
+     if(!(await reauth($('#pOld').value)))return pmsg('Для удаления введите текущий пароль.');
      const{error}=await sb.rpc('delete_my_account');if(error)return pmsg(error.message);
      await signOut()};
-    
+
     /* мои проекты */
     async function loadMyProjects(){const box=$('#myProjects');box.innerHTML='<p class="who">Загрузка…</p>';
      const{data,error}=await sb.from('projects').select('id,title,status,price,submitted_at,review_note,approved_at').eq('client_id',PROF.id).order('submitted_at',{ascending:false});
@@ -1160,7 +1265,7 @@
      if(error)return gtoast(error.message);
      if(S.projectId===p.id){S.projectId=null;S.projectTitle=''}
      gtoast('Проект удалён');loadMyProjects()}
-    
+
     /* страница расчёта */
     function showCalc(p){if(!p.calc)return gtoast('Расчёт ещё не готов.');CALCP=p;
      $('#calcTitle').textContent='Расчёт: '+p.title;
@@ -1172,7 +1277,7 @@
      if(cfg.PAYMENT_URL){location.href=cfg.PAYMENT_URL+(cfg.PAYMENT_URL.includes('?')?'&':'?')+'project='+encodeURIComponent(p.id)+'&amount='+p.calc.total;return}
      gtoast('Оплата пока не подключена. Менеджер пришлёт реквизиты в чате.')}
     $('#payBtn').onclick=()=>{if(CALCP)goToPayment(CALCP)};
-    
+
     /* отправка проекта на согласование */
     let submitFrom='config';
     const smmsg=t=>showMsg('#smMsg',t);
@@ -1193,7 +1298,7 @@
      if(error)return smmsg(error.message);
      S.projectId=data;S.projectTitle=title;$('#submitModal').hidden=true;gtoast('Проект отправлен на согласование');openChat(submitFrom)};
     $('#toChat').onclick=()=>openSubmit('config');
-    
+
     /* запись на консультацию */
     const BK={days:[],day:null,slot:null};
     function companyToday(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return[+p.year,+p.month,+p.day]}
@@ -1242,7 +1347,7 @@
      if(!confirm('Отменить запись?'))return;
      const{error}=await sb.rpc('cancel_booking',{p_id:b.dataset.cancel});
      gtoast(error?error.message:'Запись отменена');loadMyBookings();if(BK.day)loadSlots()});
-    
+
     /* чат с дизайнером */
     const CH={id:null,seen:new Set(),ch:null};
     let chatFrom='config';
@@ -1270,7 +1375,7 @@
     $('#sendCfg').onclick=()=>openSubmit(chatFrom);
     $('#chatMine').onclick=()=>openProfile('projects');
     $('#editCfg').onclick=()=>go(chatFrom);
-    
+
     /* ===== панель команды ===== */
     const ST={id:null,seen:new Set(),ch:null,list:[],designers:[],projects:[],t:null,leadFilter:'new'};
     let STAB='plans';
@@ -1294,16 +1399,16 @@
      const cnt=async(t,f)=>{const{count}=await f(sb.from(t).select('id',{count:'exact',head:true}));return count||0};
      const[a,b,c]=await Promise.all([cnt('projects',q=>q.eq('status','submitted')),cnt('leads',q=>q.eq('status','new')),cnt('bookings',q=>q.eq('status','booked').gte('starts_at',new Date().toISOString()))]);
      $('#bPlans').textContent=a?a+' на согласовании':'';$('#bLeads').textContent=b?b+' новых':'';$('#bBook').textContent=c?c+' предстоит':''}
-    
+
     /* раздел «Планировки»: диалоги, проекты, согласование */
     async function refreshPlans(){
      if(PROF.role==='owner')await refreshTeam();
      const[cv,pj]=await Promise.all([
-      sb.from('conversations').select('id,status,designer_id,client:profiles!conversations_client_id_fkey(full_name,username),designer:profiles!conversations_designer_id_fkey(full_name)').order('updated_at',{ascending:false}),
+      sb.from('conversations').select('id,status,designer_id,client:profiles!conversations_client_id_fkey(full_name,username'+(HAS_PHONE?',phone':'')+'),designer:profiles!conversations_designer_id_fkey(full_name)').order('updated_at',{ascending:false}),
       sb.from('projects').select('id,title,status,price,conversation_id,submitted_at').order('submitted_at',{ascending:false})]);
      ST.list=cv.data||[];ST.projects=pj.data||[];
      $('#convList').innerHTML=ST.list.length?ST.list.map(c=>{const n=ST.projects.filter(p=>p.conversation_id===c.id&&p.status==='submitted').length;
-      return `<button class="chip" data-cid="${c.id}" aria-pressed="${c.id===ST.id}" style="width:100%;margin-bottom:8px">${esc(c.client&&c.client.full_name||'Клиент')}<small>@${esc(c.client&&c.client.username||'')} · ${c.designer?esc(c.designer.full_name):'без дизайнера'}${n?' · на согласовании: '+n:''}</small></button>`}).join(''):'<p class="who">Диалогов пока нет.</p>';
+      return `<button class="chip" data-cid="${c.id}" aria-pressed="${c.id===ST.id}" style="width:100%;margin-bottom:8px">${esc(c.client&&c.client.full_name||'Клиент')}<small>@${esc(c.client&&c.client.username||'')}${c.client&&c.client.phone?' · '+esc(c.client.phone):''} · ${c.designer?esc(c.designer.full_name):'без дизайнера'}${n?' · на согласовании: '+n:''}</small></button>`}).join(''):'<p class="who">Диалогов пока нет.</p>';
      if(ST.id)renderConvProjects()}
     function renderConvProjects(){const box=$('#stProjects'),list=ST.projects.filter(p=>p.conversation_id===ST.id);box.hidden=!ST.id;
      box.innerHTML='<div class="who" style="margin-bottom:6px">Проекты клиента</div>'+(list.length?list.map(p=>`<div class="send" style="align-items:center;margin-bottom:6px;flex-wrap:wrap"><span style="flex:1"><b>${esc(p.title)}</b> <span class="who">${esc(fmtD(p.submitted_at))} · ≈ ${fmt(+p.price)}</span></span><span class="badge b-${p.status}">${PST[p.status]||p.status}</span><button class="chip" data-rv="${p.id}">${p.status==='submitted'?'Проверить':'Открыть'}</button></div>`).join(''):'<p class="who" style="margin:0">Клиент ещё не отправлял проекты.</p>')}
@@ -1326,12 +1431,12 @@
     $('#convList').addEventListener('click',async e=>{const b=e.target.closest('[data-cid]');if(!b)return;
      ST.id=b.dataset.cid;ST.seen=new Set();const c=ST.list.find(x=>x.id===ST.id);if(!c)return;
      [...$('#convList').children].forEach(x=>x.setAttribute('aria-pressed',x===b));
-     $('#stTitle').textContent=(c.client&&c.client.full_name||'Клиент')+' (@'+(c.client&&c.client.username||'')+')';
+     $('#stTitle').textContent=(c.client&&c.client.full_name||'Клиент')+' (@'+(c.client&&c.client.username||'')+(c.client&&c.client.phone?', '+c.client.phone:'')+')';
      $('#stChat').innerHTML='';$('#stForm').hidden=false;renderAssign(c);renderConvProjects();
      const{data}=await sb.from('messages').select('*').eq('conversation_id',ST.id).order('created_at');
      (data||[]).forEach(m=>renderMsg($('#stChat'),m,ST.seen))});
     $('#stForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#stIn').value.trim();if(!v||!ST.id)return;$('#stIn').value='';postMsg(ST,$('#stChat'),v)});
-    
+
     /* окно проверки проекта */
     const RV={p:null,calc:null,adj:[]};
     const rvmsg=t=>showMsg('#rvMsg',t);
@@ -1364,7 +1469,7 @@
      $('#reviewModal').hidden=true;gtoast(decision==='approved'?'Проект согласован, клиент увидит расчёт':'Проект возвращён на доработку');refreshStaff()}
     $('#rvOk').onclick=()=>decide('approved');
     $('#rvRev').onclick=()=>decide('revision');
-    
+
     /* раздел «Обращения» (форма внизу главной страницы) */
     async function refreshLeads(){
      let q=sb.from('leads').select('id,name,phone,status,created_at,taker:profiles!leads_taken_by_fkey(full_name)').order('created_at',{ascending:false}).limit(200);
@@ -1378,22 +1483,22 @@
      const patch=b.dataset.la==='done'?{status:'done'}:{status:'in_work',taken_by:PROF.id};
      const{error}=await sb.from('leads').update(patch).eq('id',b.dataset.id);
      gtoast(error?'Ошибка: '+error.message:'Сохранено');refreshStaff()});
-    
+
     /* раздел «Записи на консультацию» */
     async function refreshBookings(){
-     const{data,error}=await sb.from('bookings').select('id,starts_at,status,topic,designer_id,client:profiles!bookings_client_id_fkey(full_name,username),designer:profiles!bookings_designer_id_fkey(full_name),project:projects(title)').gte('starts_at',new Date(Date.now()-7*864e5).toISOString()).order('starts_at').limit(200);
+     const{data,error}=await sb.from('bookings').select('id,starts_at,status,topic,designer_id,client:profiles!bookings_client_id_fkey(full_name,username'+(HAS_PHONE?',phone':'')+'),designer:profiles!bookings_designer_id_fkey(full_name),project:projects(title)').gte('starts_at',new Date(Date.now()-7*864e5).toISOString()).order('starts_at').limit(200);
      if(error){$('#bookList').innerHTML='<p class="who">Не удалось загрузить записи.</p>';return}
      const now=Date.now();
      $('#bookList').innerHTML=(data&&data.length)?data.map(b=>{const past=new Date(b.starts_at).getTime()<now,
       st=b.status==='cancelled'?['Отменена','revision']:b.status==='done'?['Проведена','approved']:past?['Время прошло','paid']:['Запланирована','submitted'],
       mine=b.designer_id===PROF.id,canAct=b.status==='booked'&&(PROF.role==='owner'||mine||!b.designer_id);
-      return `<div class="card" style="margin-bottom:10px"><div class="send" style="align-items:center;flex-wrap:wrap"><b style="flex:1">${esc(fmtDT(b.starts_at))}</b><span class="badge b-${st[1]}">${st[0]}</span></div><p style="margin:6px 0">${esc(b.client&&b.client.full_name||'Клиент')} <span class="who">@${esc(b.client&&b.client.username||'')} · ${b.designer?'дизайнер: '+esc(b.designer.full_name):'дизайнер не назначен'}${b.project?' · проект «'+esc(b.project.title)+'»':''}</span></p>${b.topic?`<p style="margin:6px 0">${esc(b.topic)}</p>`:''}<div class="row">${(b.status==='booked'&&!b.designer_id)?`<button class="btn" data-ba="claim" data-id="${b.id}">Взять себе</button>`:''}${canAct&&b.designer_id?`<button class="btn" data-ba="done" data-id="${b.id}">Отметить проведённой</button>`:''}${canAct?`<button class="btn ghost" data-ba="cancel" data-id="${b.id}">Отменить</button>`:''}</div></div>`}).join(''):'<p class="who">Записей нет.</p>'}
+      return `<div class="card" style="margin-bottom:10px"><div class="send" style="align-items:center;flex-wrap:wrap"><b style="flex:1">${esc(fmtDT(b.starts_at))}</b><span class="badge b-${st[1]}">${st[0]}</span></div><p style="margin:6px 0">${esc(b.client&&b.client.full_name||'Клиент')} <span class="who">@${esc(b.client&&b.client.username||'')}${b.client&&b.client.phone?' · '+esc(b.client.phone):''} · ${b.designer?'дизайнер: '+esc(b.designer.full_name):'дизайнер не назначен'}${b.project?' · проект «'+esc(b.project.title)+'»':''}</span></p>${b.topic?`<p style="margin:6px 0">${esc(b.topic)}</p>`:''}<div class="row">${(b.status==='booked'&&!b.designer_id)?`<button class="btn" data-ba="claim" data-id="${b.id}">Взять себе</button>`:''}${canAct&&b.designer_id?`<button class="btn" data-ba="done" data-id="${b.id}">Отметить проведённой</button>`:''}${canAct?`<button class="btn ghost" data-ba="cancel" data-id="${b.id}">Отменить</button>`:''}</div></div>`}).join(''):'<p class="who">Записей нет.</p>'}
     $('#bookList').addEventListener('click',async e=>{const b=e.target.closest('[data-ba]');if(!b)return;
      const a=b.dataset.ba,patch=a==='claim'?{designer_id:PROF.id}:a==='done'?{status:'done'}:{status:'cancelled'};
      if(a==='cancel'&&!confirm('Отменить запись клиента?'))return;
      const{error}=await sb.from('bookings').update(patch).eq('id',b.dataset.id);
      gtoast(error?'Ошибка: '+error.message:'Сохранено');refreshStaff()});
-    
+
     /* диагностика связи: откройте сайт с добавкой ?diag=1 к адресу */
     async function runDiag(){
      const box=document.createElement('div');
@@ -1428,7 +1533,7 @@
       if(has('Чат в реальном'))lines.push('• Чат в реальном времени не подключается; вход и проекты при этом могут работать.')}
      out()}
     if(/[?&]diag=1/.test(location.search||''))runDiag();
-    
+
     authUI();loadProfile();
 </script>
 </body>
