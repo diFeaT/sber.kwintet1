@@ -988,6 +988,7 @@
     
     /* ===== Supabase: аккаунты, роли, диалоги, проекты, записи ===== */
     const cfg=window.APP_CONFIG||{};
+    const BUILD='2026-10-14, роли и обращения'; // метка версии: видна на странице ?diag=1, помогает понять, что загрузилась свежая версия
     const cfgOk=!!(cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABASE_URL+cfg.SUPABASE_ANON_KEY));
     // запрос без ответа дольше 15 секунд считается ошибкой сети (иначе кнопка «зависает»)
     const fetchT=(u,o)=>{o=o||{};const c=new AbortController(),t=setTimeout(()=>c.abort(),15000);return fetch(u,{...o,signal:o.signal||c.signal}).finally(()=>clearTimeout(t))};
@@ -1569,7 +1570,9 @@
      lines.push('ДИАГНОСТИКА САЙТА. Сделайте скриншот этого окна и пришлите.','');
      lines.push('Страница: '+location.origin+location.pathname);
      lines.push('Браузер: '+navigator.userAgent);
-     lines.push('Соединение https: '+(window.isSecureContext?'да':'нет'),'');out();
+     lines.push('Соединение https: '+(window.isSecureContext?'да':'нет'));
+     lines.push('Версия сайта: '+BUILD);
+     lines.push('Вход по телефону (PHONE_AUTH в config.js): '+(PHONE_ON?'включён':'ВЫКЛЮЧЕН, ссылки на регистрацию по телефону не будет'),'');out();
      add(cfgOk,'config.js заполнен');
      add(!!window.supabase,'Библиотека входа загружена');
      await timed('3D-модуль three.js загружается',async()=>{if(!(await ensureThree()))throw new Error('не загрузился');return 'загружен'});
