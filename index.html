@@ -72,7 +72,7 @@
         [hidden]{display:none!important}
         @media(max-width:800px){.hero,.cfg{grid-template-columns:1fr}.preview{position:static}section{padding:44px 0}}
         @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
-
+        
         select{font:inherit;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;width:100%}
         .cfg3{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
         .cfg3>#panel{display:grid;gap:14px}
@@ -244,7 +244,13 @@
                 <form class="lead" id="lead">
                     <input required name="name" placeholder="Ваше имя" aria-label="Имя">
                     <input required name="phone" type="tel" placeholder="Телефон" aria-label="Телефон">
-                    <input required name="name" placeholder="Тема обращения" aria-label="Имя">
+                    <input required name="topic" maxlength="200" placeholder="Тема обращения"
+                           aria-label="Тема обращения">
+                    <select required name="recipient" aria-label="Кому адресовать обращение">
+                        <option value="" disabled selected>Кому адресовать обращение</option>
+                        <option value="manager">Менеджеру: цены, сроки, договор</option>
+                        <option value="designer">Дизайнеру: планировка и интерьер</option>
+                    </select>
                     <input name="website" tabindex="-1" autocomplete="off" aria-hidden="true"
                            style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
                     <button class="btn" type="submit">Отправить обращение</button>
@@ -474,22 +480,17 @@
     <div id="view-staff" hidden>
         <div class="wrap" style="padding-top:28px;padding-bottom:64px">
             <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">Панель команды</h1>
+            <p class="who" id="stRole"></p>
             <div class="opt" id="stTabs">
                 <button class="chip" data-st="plans" aria-pressed="true">Планировки<small id="bPlans"></small></button>
                 <button class="chip" data-st="leads" aria-pressed="false">Обращения<small id="bLeads"></small></button>
                 <button class="chip" data-st="bookings" aria-pressed="false">Записи на консультацию<small
                         id="bBook"></small></button>
+                <button class="chip" data-st="team" aria-pressed="false" hidden>Роли<small>менеджеры и дизайнеры</small>
+                </button>
             </div>
 
             <div id="st-plans">
-                <div class="card" id="teamBox" hidden style="margin-bottom:20px"><h3>Дизайнеры</h3>
-                    <div id="teamList"></div>
-                    <form id="teamAdd" class="send" style="margin-top:10px"><input id="teamUser"
-                                                                                   placeholder="Юзернейм пользователя, которого сделать дизайнером"
-                                                                                   aria-label="Юзернейм">
-                        <button class="btn" type="submit">Назначить</button>
-                    </form>
-                </div>
                 <div class="staff">
                     <div class="card"><h3>Клиенты и диалоги</h3>
                         <div id="convList"></div>
@@ -507,8 +508,13 @@
             </div>
 
             <div id="st-leads" hidden>
-                <p class="who">Обращения с формы «Получить консультацию» внизу главной страницы. Это не диалоги по
-                    планировке.</p>
+                <p class="who" id="leadIntro">Обращения с формы «Получить консультацию» внизу главной страницы. Это не
+                    диалоги по планировке.</p>
+                <div class="opt" id="leadRecipFilters" hidden>
+                    <button class="chip" data-lr="all" aria-pressed="true">Все адресаты</button>
+                    <button class="chip" data-lr="manager" aria-pressed="false">Менеджеру</button>
+                    <button class="chip" data-lr="designer" aria-pressed="false">Дизайнеру</button>
+                </div>
                 <div class="opt" id="leadFilters">
                     <button class="chip" data-lf="new" aria-pressed="true">Новые</button>
                     <button class="chip" data-lf="in_work" aria-pressed="false">В работе</button>
@@ -522,6 +528,24 @@
                 <p class="who">Ближайшие записи клиентов на консультацию (показаны записи за последние 7 дней и
                     будущие).</p>
                 <div id="bookList"></div>
+            </div>
+
+            <div id="st-team" hidden>
+                <div class="card" id="teamBox"><h3 style="margin-top:0">Команда и роли</h3>
+                    <p class="who">Менеджер получает обращения, адресованные менеджеру. Дизайнер ведёт диалоги и
+                        проекты, получает обращения, адресованные дизайнеру, и записи на консультации. Владелец видит
+                        всё.</p>
+                    <div id="teamList"></div>
+                    <form id="teamAdd" class="send" style="margin-top:10px;flex-wrap:wrap"><input id="teamUser"
+                                                                                                  placeholder="Юзернейм пользователя"
+                                                                                                  aria-label="Юзернейм"><select
+                            id="teamRole" aria-label="Роль" style="width:auto">
+                        <option value="manager">Менеджер</option>
+                        <option value="designer">Дизайнер</option>
+                    </select>
+                        <button class="btn" type="submit">Назначить</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -632,7 +656,7 @@
     const ROOFS=[{id:'flat',name:'Плоская',p:0},{id:'gable',name:'Двускатная',p:120000}];
     const EXTRAS=[{id:'terr',name:'Терраса 20 м²',p:180000},{id:'heat',name:'Тёплый пол',p:90000},{id:'smart',name:'Умный дом',p:110000},{id:'sun',name:'Солнечные панели',p:240000}];
     let S={model:'oz',facade:'wood',roof:'gable',extras:[],step:0};
-
+    
     function house(m,f,r,terr,sun){
      const w=m.w,x=(460-w)/2,t=terr?110:0;
      const roof=r==='gable'?`<polygon points="${x-10},170 ${x+w/2},120 ${x+w+10},170" fill="#2a3532"/>`:`<rect x="${x-10}" y="160" width="${w+20}" height="12" fill="#2a3532"/>`;
@@ -642,7 +666,7 @@
     }
     const fac=id=>FACADES.find(f=>f.id===id), mod=id=>MODELS.find(m=>m.id===id);
     function price(){const m=mod(S.model);return m.price+fac(S.facade).p+ROOFS.find(r=>r.id===S.roof).p+S.extras.reduce((a,id)=>a+EXTRAS.find(e=>e.id===id).p,0)}
-
+    
     /* навигация */
     function go(v,anchor){
      $('#view-home').hidden=v!=='home';$('#view-config').hidden=v!=='config';$('#view-interior').hidden=v!=='interior';$('#view-profile').hidden=v!=='profile';$('#view-staff').hidden=v!=='staff';$('#view-calc').hidden=v!=='calc';$('#view-chat').hidden=true;
@@ -657,12 +681,12 @@
      const p=b.dataset.pick;if(p){S.model=p;S.projectId=null;S.projectTitle=''}
      go(b.dataset.go,b.dataset.anchor);
     });
-
+    
     /* главная */
     $('#heroArt').innerHTML=house(MODELS[1],'#b9834a','gable',true,false);
     $('#projGrid').innerHTML=MODELS.map((m,i)=>`<article class="card proj"><div class="pic">${house(m,FACADES[i].c,i?'gable':'flat',i>0,false)}</div><div class="txt"><h3>${m.name}</h3><span class="who">${m.area} м² · ${m.rooms}</span><span class="price">от ${fmt(m.price)}</span><button class="btn" data-go="config" data-pick="${m.id}">Настроить этот дом</button></div></article>`).join('');
     $('#lead').addEventListener('submit',e=>{e.preventDefault();submitLead(e.target)});
-
+    
     /* 3D-конструктор */
     /* three.js (3D-конструктор) подгружается только когда нужен: сначала vendor/three.min.js, затем CDN.
        Если он недоступен в сети пользователя, остальной сайт (вход, кабинет, чат) продолжает работать. */
@@ -685,7 +709,7 @@
     let R,cam,scene,wallMat,roofMat,selBox,el,stage,inited=false,uid=0,dead=[],drag=null,mode=null,pd=0,lw=0,lh=0,tt;
     let ray=null,plane=null;
     const cv={th:.6,ph:1,d:24,gth:.6,gph:1,gd:24},P=new Map();
-
+    
     function forest(){const c=document.createElement('canvas');c.width=1400;c.height=800;const g=c.getContext('2d');
      const s=g.createLinearGradient(0,0,0,800);s.addColorStop(0,'#d5e4e0');s.addColorStop(.5,'#b3cbbf');s.addColorStop(1,'#6b8c74');g.fillStyle=s;g.fillRect(0,0,1400,800);
      let sd=7;const rnd=()=>(sd=sd*16807%2147483647)/2147483647;
@@ -696,14 +720,14 @@
        g.fillRect(x-3,y-th*.1,6,th*.1+8)}
       g.fillStyle='rgba(225,238,232,.16)';g.fillRect(0,base-60,1400,140)});
      return c.toDataURL('image/jpeg',.85)}
-
+    
     function tex(t,c){const k=document.createElement('canvas');k.width=k.height=128;const g=k.getContext('2d');g.fillStyle=c;g.fillRect(0,0,128,128);g.strokeStyle='rgba(0,0,0,.25)';g.lineWidth=2;
      if(t==='wood'){for(let x=0;x<128;x+=16){g.beginPath();g.moveTo(x,0);g.lineTo(x,128);g.stroke()}}
      else if(t==='brick'){for(let y=0;y<128;y+=16){g.beginPath();g.moveTo(0,y);g.lineTo(128,y);g.stroke();for(let x=(y/16%2)*16;x<128;x+=32){g.beginPath();g.moveTo(x,y);g.lineTo(x,y+16);g.stroke()}}}
      else if(t==='stone'){for(let i=0;i<400;i++){g.fillStyle='rgba(0,0,0,'+Math.random()*.08+')';g.fillRect(Math.random()*128,Math.random()*128,3,3)}}
      return new THREE.CanvasTexture(k)}
     function applyWall(){const w=WALLS.find(x=>x.id===S.wall);wallMat.map=tex(w.t,w.c);wallMat.color.set(0xffffff);wallMat.needsUpdate=true}
-
+    
     function free(x,z,w,d,ex){return x>=0&&z>=0&&x+w<=GW&&z+d<=GD&&!S.rooms.some(o=>o!==ex&&x<o.x+o.w&&o.x<x+w&&z<o.z+o.d&&o.z<z+d)}
     function spot(w,d){let cx=GW/2,cz=GD/2;const n=S.rooms.length;if(n){cx=S.rooms.reduce((a,o)=>a+o.x+o.w/2,0)/n;cz=S.rooms.reduce((a,o)=>a+o.z+o.d/2,0)/n}
      let best=null,bd=1e9;for(let x=0;x<=GW-w;x++)for(let z=0;z<=GD-d;z++)if(free(x,z,w,d)){const q=(x+w/2-cx)**2+(z+d/2-cz)**2;if(q<bd){bd=q;best=[x,z]}}return best}
@@ -737,7 +761,7 @@
     function toast(t){const o=$('#toast');o.textContent=t;o.style.opacity=1;clearTimeout(tt);tt=setTimeout(()=>o.style.opacity=0,2800)}
     function loadPreset(id){const tok=++uid;S.rooms.forEach(r=>{r.gone=true;dead.push(r)});S.rooms=[];S.sel=null;
      (PRE[id]||PRE.oz).forEach((a,i)=>setTimeout(()=>{if(S.loaded===id&&inited)addRoom(a[0],a[1],a[2])},250+i*280));syncUI()}
-
+    
     function syncUI(){const r=S.sel,tot=S.rooms.reduce((a,o)=>a+o.w*o.d,0);
      $('#tArea').textContent=`Комнат: ${S.rooms.length}, общая площадь: ${tot} м²`;$('#tPrice').textContent='≈ '+fmt(price());
      $('#selT').textContent=r?TYPES[r.type].n+', '+r.w*r.d+' м²':'Выберите комнату на модели';
@@ -746,12 +770,12 @@
      const ch=(a,arr,cur)=>arr.map(i=>`<button class="chip" data-a="${a}:${i.id}" aria-pressed="${cur===i.id}">${i.n}<small>${i.p?'+ '+fmt(i.p)+'/м²':'входит в цену'}</small></button>`).join('');
      $('#oWall').innerHTML=ch('wall',WALLS,S.wall);$('#oFloor').innerHTML=ch('floor',FLOORS,S.floor);
      $('#oRoof').innerHTML=`<button class="chip" data-a="roof" aria-pressed="${S.roof}">Показывать крышу<small>входит в стоимость</small></button>`}
-
+    
     const ndc=e=>{const b=el.getBoundingClientRect();return new THREE.Vector2((e.clientX-b.left)/b.width*2-1,-(e.clientY-b.top)/b.height*2+1)};
     function hit(e){ray.setFromCamera(ndc(e),cam);const t=[];S.rooms.forEach(r=>{t.push(r.fl);if(!TYPES[r.type].open)t.push(...r.ws)});const i=ray.intersectObjects(t,false)[0];return i?i.object.userData.r:null}
     function gpt(e){ray.setFromCamera(ndc(e),cam);const p=new THREE.Vector3();return ray.ray.intersectPlane(plane,p)||p}
     const d2=()=>{const a=[...P.values()];return Math.hypot(a[0][0]-a[1][0],a[0][1]-a[1][1])||1};
-
+    
     function init(){
      BOX=new THREE.BoxGeometry(1,1,1);ray=new THREE.Raycaster();plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
      el=$('#c3d');stage=$('#stage');R=new THREE.WebGLRenderer({canvas:el,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
@@ -800,7 +824,7 @@
     function render(){if(!inited){inited=true;init()}
      if(S.loaded!==S.model){S.loaded=S.model;loadPreset(S.model||'oz')}
      $('#cfgBox').hidden=false;syncUI()}
-
+    
     /* интерьер: расстановка мебели */
     const FLIST={sofa:{n:'Диван',w:2,d:.9,c:'#8a6a8f',ic:'🛋️'},armchair:{n:'Кресло',w:.8,d:.8,c:'#b98a5a',ic:'🪑'},tv:{n:'Телевизор',w:1.2,d:.15,c:'#2a2a2a',ic:'📺'},table:{n:'Стол',w:1.2,d:.8,c:'#a97c50',ic:'🍽️'},bookshelf:{n:'Стеллаж',w:1,d:.3,c:'#7a5a3a',ic:'📚'},bed:{n:'Кровать',w:1.6,d:2,c:'#c79a9a',ic:'🛏️'},wardrobe:{n:'Шкаф',w:1.2,d:.6,c:'#6b5843',ic:'🚪'},nightstand:{n:'Тумба',w:.5,d:.4,c:'#8a7052',ic:'🕯️'},desk:{n:'Письменный стол',w:1.2,d:.6,c:'#9c8158',ic:'💻'},kitchen:{n:'Кухня',w:2,d:.6,c:'#7d9490',ic:'🍳'},fridge:{n:'Холодильник',w:.7,d:.7,c:'#c9d2d3',ic:'🧊'},sink:{n:'Раковина',w:.6,d:.5,c:'#cfd8da',ic:'🚰'},toilet:{n:'Унитаз',w:.4,d:.6,c:'#e4e9ea',ic:'🚽'},bathtub:{n:'Ванна',w:1.7,d:.75,c:'#dfe6e7',ic:'🛁'}};
     const FPRICE={sofa:65000,armchair:28000,tv:55000,table:32000,bookshelf:24000,bed:78000,wardrobe:62000,nightstand:9000,desk:26000,kitchen:180000,fridge:85000,sink:22000,toilet:18000,bathtub:70000};
@@ -961,7 +985,7 @@
      drawInterior();if(Imode==='3d')syncScene3D()};
     $('#fDel').onclick=()=>{if(!Isel)return;Isel.dead=true;Isel=null;$('#furnSel').hidden=true;drawInterior()};
     $('#toChat2').onclick=()=>openSubmit('interior');
-
+    
     /* ===== Supabase: аккаунты, роли, диалоги, проекты, записи ===== */
     const cfg=window.APP_CONFIG||{};
     const cfgOk=!!(cfg.SUPABASE_URL&&cfg.SUPABASE_ANON_KEY&&!/YOUR-/.test(cfg.SUPABASE_URL+cfg.SUPABASE_ANON_KEY));
@@ -976,7 +1000,8 @@
     const TZ=cfg.TIMEZONE||'Europe/Moscow',TZL=cfg.TIMEZONE_LABEL||'Москва';
     const WORK={from:cfg.WORK_FROM!=null?cfg.WORK_FROM:10,to:cfg.WORK_TO!=null?cfg.WORK_TO:19,days:cfg.WORK_DAYS||[1,2,3,4,5,6],ahead:cfg.SLOT_DAYS_AHEAD||14};
     let PROF=null,recovery=false,amode='in',gtt;
-    const isStaff=()=>!!PROF&&(PROF.role==='owner'||PROF.role==='designer');
+    const ROLE_RU={client:'клиент',manager:'менеджер',designer:'дизайнер',owner:'владелец'};
+    const isStaff=()=>!!PROF&&(PROF.role==='owner'||PROF.role==='manager'||PROF.role==='designer');
     const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     function gtoast(t){const e=$('#gToast');e.textContent=t;e.style.opacity=1;clearTimeout(gtt);gtt=setTimeout(()=>e.style.opacity=0,3800)}
     const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/,USER_RE=/^(?=.*[a-z_])[a-z0-9_]{3,20}$/i;
@@ -988,7 +1013,7 @@
     const fmtD=iso=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,day:'numeric',month:'long',year:'numeric'}).format(new Date(iso));
     const hhmm=d=>new Intl.DateTimeFormat('ru-RU',{timeZone:TZ,hour:'2-digit',minute:'2-digit'}).format(d);
     const showMsg=(sel,t)=>{const m=$(sel);m.textContent=t;m.style.display=t?'block':'none'};
-
+    
     let HAS_PHONE=false; // есть ли в базе колонка phone (выполнена ли миграция 04)
     async function loadProfile(){
      if(!sb)return;
@@ -1003,11 +1028,11 @@
      const n=document.querySelector('#lead [name=name]');if(p&&n&&!n.value)n.value=p.full_name}
     async function signOut(){if(sb){await sb.removeAllChannels();await sb.auth.signOut()}
      PROF=null;CH.id=null;ST.id=null;S.projectId=null;S.projectTitle='';authUI();go('home')}
-
+    
     /* окна: общее закрытие по Esc и клику на фон */
     document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal:not([hidden])').forEach(m=>m.hidden=true)});
     document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('modal'))e.target.hidden=true});
-
+    
     /* окно входа / регистрации: две отдельные формы, чтобы браузер мог запомнить и подставить логин */
     const amsg=t=>showMsg('#aMsg',t);
     function setMode(m){amode=m;[...$('#authTabs').children].forEach(c=>c.setAttribute('aria-pressed',c.dataset.t===m));
@@ -1077,7 +1102,7 @@
     if(sb)sb.auth.onAuthStateChange(ev=>{
      if(ev==='PASSWORD_RECOVERY'){recovery=true;setTimeout(async()=>{await loadProfile();openProfile('profile')},0)}
      else if(['SIGNED_IN','SIGNED_OUT','USER_UPDATED'].includes(ev)){setTimeout(loadProfile,0)}});
-
+    
     /* ===== вход и регистрация по номеру телефона и паролю (без кода из SMS) ===== */
     const PHONE_ON=cfg.PHONE_AUTH===true;
     // '8 (999) 123-45-67', '+7 999 123 45 67', '9991234567' -> '+79991234567'; иностранные номера только с «+»
@@ -1140,21 +1165,30 @@
       lkmsg(r.msg)}
      catch(x){lkmsg(NETMSG)}
      finally{btn.disabled=false}});
-
+    
     /* обращения с формы внизу главной страницы */
     async function submitLead(form){const ok=$('#leadOk'),say=t=>{ok.textContent=t;ok.style.display='block'};
-     const fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim();
+     const fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim(),topic=String(fd.get('topic')||'').trim().slice(0,200),recipient=String(fd.get('recipient')||'');
      if(fd.get('website'))return say('Спасибо!');
      if(!sb)return say('Приём обращений пока не настроен. Позвоните нам или напишите в чат.');
      if(name.length<2||phone.replace(/\D/g,'').length<6)return say('Проверьте имя и телефон.');
+     if(recipient!=='manager'&&recipient!=='designer')return say('Выберите, кому адресовать обращение: менеджеру или дизайнеру.');
      let last=0;try{last=+localStorage.getItem('lead_ts')||0}catch(e){}
      if(Date.now()-last<60000)return say('Обращение уже отправлено. Если нужно отправить ещё одно, подождите минуту.');
      const btn=form.querySelector('button[type=submit]');btn.disabled=true;
-     const{error}=await sb.from('leads').insert({name,phone});btn.disabled=false;
+     const to=recipient==='designer'?'дизайнеру':'менеджеру';
+     // Если в базе ещё нет колонок recipient/topic (не выполнены миграции 05 и 06), адресат и тема дописываются к тексту, чтобы ничего не потерялось.
+     const attempts=[
+      {name,phone,topic:topic||null,recipient},
+      {name,phone,topic:('Кому: '+to+(topic?'. '+topic:'')).slice(0,200)},
+      {name:(name+' — кому: '+to+(topic?'. '+topic:'')).slice(0,80),phone}];
+     let error=null;
+     for(const row of attempts){({error}=await sb.from('leads').insert(row));if(!error||!/recipient|topic/i.test(String(error.message||'')))break}
+     btn.disabled=false;
      if(error)return say('Не удалось отправить обращение. Попробуйте ещё раз или позвоните нам.');
      try{localStorage.setItem('lead_ts',String(Date.now()))}catch(e){}
-     say('Спасибо, '+name+'! Менеджер свяжется с вами в течение 15 минут в рабочее время.');form.reset()}
-
+     say('Спасибо, '+name+'! '+(recipient==='designer'?'Дизайнер':'Менеджер')+' свяжется с вами в течение 15 минут в рабочее время.');form.reset()}
+    
     /* ===== расчёт стоимости ===== */
     const RATES={base:62000,terrace:30000,wet:15000,roof:8000,foundation:4500,foundationOpen:2500};
     function serializeProject(){return{v:2,wall:S.wall,floor:S.floor,roof:!!S.roof,
@@ -1188,7 +1222,7 @@
      if(adj.length)h+='<h3>Корректировки дизайнера</h3>'+tw('<tbody>'+adj.map(a=>tr(esc(a.name||'Корректировка'),m(a.amount))).join('')+'</tbody>');
      h+='<h3>Полная стоимость</h3>'+tw('<tbody>'+tr('Модули',m(c.modules))+tr('Фундамент',m(f.total))+tr('Мебель',m(c.furniture.total))+(adj.length?tr('Корректировки',m(adjSum)):'')+tr('<b style="font-size:1.25em">ИТОГО</b>','<b style="font-size:1.25em">'+m(c.total)+'</b>','tot')+'</tbody>');
      return h}
-
+    
     /* ===== сохранение и загрузка проектов в конструктор ===== */
     let LOADTOK=0;
     async function loadProject(c,meta,preview){
@@ -1207,7 +1241,7 @@
       addRoom(o.type,clamp(Math.round(+o.w)||T.w,1,GW),clamp(Math.round(+o.d)||T.d,1,GD),Math.round(+o.x),Math.round(+o.z),o);
       if(i===list.length-1){S.sel=null;syncUI()}},110*i));
      gtoast(preview?'Проект клиента открыт для просмотра. Изменения не сохраняются.':(meta&&meta.status==='paid'?'Проект оплачен: отправить изменения нельзя.':'Проект загружен. Если измените его и отправите снова, потребуется новое согласование.'))}
-
+    
     /* ===== личный кабинет ===== */
     let PTAB='profile',MY=[],CALCP=null;
     function openProfile(tab){PTAB=tab||'profile';go('profile')}
@@ -1243,7 +1277,7 @@
      if(!(await reauth($('#pOld').value)))return pmsg('Для удаления введите текущий пароль.');
      const{error}=await sb.rpc('delete_my_account');if(error)return pmsg(error.message);
      await signOut()};
-
+    
     /* мои проекты */
     async function loadMyProjects(){const box=$('#myProjects');box.innerHTML='<p class="who">Загрузка…</p>';
      const{data,error}=await sb.from('projects').select('id,title,status,price,submitted_at,review_note,approved_at').eq('client_id',PROF.id).order('submitted_at',{ascending:false});
@@ -1265,7 +1299,7 @@
      if(error)return gtoast(error.message);
      if(S.projectId===p.id){S.projectId=null;S.projectTitle=''}
      gtoast('Проект удалён');loadMyProjects()}
-
+    
     /* страница расчёта */
     function showCalc(p){if(!p.calc)return gtoast('Расчёт ещё не готов.');CALCP=p;
      $('#calcTitle').textContent='Расчёт: '+p.title;
@@ -1277,7 +1311,7 @@
      if(cfg.PAYMENT_URL){location.href=cfg.PAYMENT_URL+(cfg.PAYMENT_URL.includes('?')?'&':'?')+'project='+encodeURIComponent(p.id)+'&amount='+p.calc.total;return}
      gtoast('Оплата пока не подключена. Менеджер пришлёт реквизиты в чате.')}
     $('#payBtn').onclick=()=>{if(CALCP)goToPayment(CALCP)};
-
+    
     /* отправка проекта на согласование */
     let submitFrom='config';
     const smmsg=t=>showMsg('#smMsg',t);
@@ -1298,7 +1332,7 @@
      if(error)return smmsg(error.message);
      S.projectId=data;S.projectTitle=title;$('#submitModal').hidden=true;gtoast('Проект отправлен на согласование');openChat(submitFrom)};
     $('#toChat').onclick=()=>openSubmit('config');
-
+    
     /* запись на консультацию */
     const BK={days:[],day:null,slot:null};
     function companyToday(){const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:TZ,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).map(x=>[x.type,x.value]));return[+p.year,+p.month,+p.day]}
@@ -1347,7 +1381,7 @@
      if(!confirm('Отменить запись?'))return;
      const{error}=await sb.rpc('cancel_booking',{p_id:b.dataset.cancel});
      gtoast(error?error.message:'Запись отменена');loadMyBookings();if(BK.day)loadSlots()});
-
+    
     /* чат с дизайнером */
     const CH={id:null,seen:new Set(),ch:null};
     let chatFrom='config';
@@ -1375,12 +1409,16 @@
     $('#sendCfg').onclick=()=>openSubmit(chatFrom);
     $('#chatMine').onclick=()=>openProfile('projects');
     $('#editCfg').onclick=()=>go(chatFrom);
-
+    
     /* ===== панель команды ===== */
-    const ST={id:null,seen:new Set(),ch:null,list:[],designers:[],projects:[],t:null,leadFilter:'new'};
+    const ST={id:null,seen:new Set(),ch:null,list:[],designers:[],team:[],projects:[],t:null,leadFilter:'new',leadRecip:'all'};
     let STAB='plans';
     async function renderStaff(){if(!sb||!isStaff()){go('home');return}
-     $('#teamBox').hidden=PROF.role!=='owner';
+     // что видит каждая роль: владелец всё, дизайнер планировки, обращения и записи, менеджер только обращения
+     const allowed=PROF.role==='owner'?['plans','leads','bookings','team']:PROF.role==='manager'?['leads']:['plans','leads','bookings'];
+     [...$('#stTabs').children].forEach(b=>{b.hidden=!allowed.includes(b.dataset.st)});
+     if(!allowed.includes(STAB))STAB=allowed[0];
+     $('#stRole').textContent='Ваша роль: '+(ROLE_RU[PROF.role]||PROF.role)+'.';
      if(ST.ch)sb.removeChannel(ST.ch);
      const later=()=>{clearTimeout(ST.t);ST.t=setTimeout(refreshStaff,400)};
      ST.ch=sb.channel('staff')
@@ -1391,15 +1429,16 @@
       .on('postgres_changes',{event:'*',schema:'public',table:'bookings'},later).subscribe();
      staffTab(STAB)}
     function staffTab(t){STAB=t;[...$('#stTabs').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===t));
-     ['plans','leads','bookings'].forEach(x=>$('#st-'+x).hidden=x!==t);refreshStaff()}
+     ['plans','leads','bookings','team'].forEach(x=>$('#st-'+x).hidden=x!==t);refreshStaff()}
     $('#stTabs').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(b)staffTab(b.dataset.st)});
     async function refreshStaff(){if(!sb||!isStaff())return;refreshBadges();
-     if(STAB==='plans')await refreshPlans();else if(STAB==='leads')await refreshLeads();else await refreshBookings()}
+     if(STAB==='plans')await refreshPlans();else if(STAB==='leads')await refreshLeads();else if(STAB==='team')await refreshTeam();else await refreshBookings()}
     async function refreshBadges(){
      const cnt=async(t,f)=>{const{count}=await f(sb.from(t).select('id',{count:'exact',head:true}));return count||0};
-     const[a,b,c]=await Promise.all([cnt('projects',q=>q.eq('status','submitted')),cnt('leads',q=>q.eq('status','new')),cnt('bookings',q=>q.eq('status','booked').gte('starts_at',new Date().toISOString()))]);
+     const mgr=PROF&&PROF.role==='manager'; // менеджеру проекты и записи не показываются
+     const[a,b,c]=await Promise.all([mgr?0:cnt('projects',q=>q.eq('status','submitted')),cnt('leads',q=>q.eq('status','new')),mgr?0:cnt('bookings',q=>q.eq('status','booked').gte('starts_at',new Date().toISOString()))]);
      $('#bPlans').textContent=a?a+' на согласовании':'';$('#bLeads').textContent=b?b+' новых':'';$('#bBook').textContent=c?c+' предстоит':''}
-
+    
     /* раздел «Планировки»: диалоги, проекты, согласование */
     async function refreshPlans(){
      if(PROF.role==='owner')await refreshTeam();
@@ -1414,16 +1453,18 @@
      box.innerHTML='<div class="who" style="margin-bottom:6px">Проекты клиента</div>'+(list.length?list.map(p=>`<div class="send" style="align-items:center;margin-bottom:6px;flex-wrap:wrap"><span style="flex:1"><b>${esc(p.title)}</b> <span class="who">${esc(fmtD(p.submitted_at))} · ≈ ${fmt(+p.price)}</span></span><span class="badge b-${p.status}">${PST[p.status]||p.status}</span><button class="chip" data-rv="${p.id}">${p.status==='submitted'?'Проверить':'Открыть'}</button></div>`).join(''):'<p class="who" style="margin:0">Клиент ещё не отправлял проекты.</p>')}
     $('#stProjects').addEventListener('click',e=>{const b=e.target.closest('[data-rv]');if(b)openReview(b.dataset.rv)});
     async function refreshTeam(){
-     const{data}=await sb.from('profiles').select('id,username,full_name').eq('role','designer').order('full_name');ST.designers=data||[];
-     $('#teamList').innerHTML=ST.designers.length?ST.designers.map(d=>`<div class="send" style="margin-bottom:6px;align-items:center"><span style="flex:1">${esc(d.full_name)} <span class="who">@${esc(d.username)}</span></span><button class="chip" data-unrole="${d.id}">Снять</button></div>`).join(''):'<p class="who">Дизайнеров пока нет.</p>'}
+     const{data}=await sb.from('profiles').select('id,username,full_name,role').in('role',['designer','manager']).order('full_name');
+     ST.team=data||[];ST.designers=ST.team.filter(m=>m.role==='designer');
+     $('#teamList').innerHTML=ST.team.length?ST.team.map(m=>`<div class="send" style="margin-bottom:6px;align-items:center;flex-wrap:wrap"><span style="flex:1">${esc(m.full_name)} <span class="who">@${esc(m.username)}</span></span><select data-role-for="${m.id}" aria-label="Роль: ${esc(m.full_name)}" style="width:auto;max-width:260px"><option value="manager"${m.role==='manager'?' selected':''}>Менеджер</option><option value="designer"${m.role==='designer'?' selected':''}>Дизайнер</option><option value="client">Снять роль (обычный клиент)</option></select></div>`).join(''):'<p class="who">Сотрудников пока нет. Назначьте менеджера или дизайнера по юзернейму.</p>'}
     $('#teamAdd').addEventListener('submit',async e=>{e.preventDefault();const u=$('#teamUser').value.trim().replace(/^@/,'');if(!u||!sb)return;
      const{data}=await sb.from('profiles').select('id,role').ilike('username',u.replace(/[\\_%]/g,'\\$&')).maybeSingle();
      if(!data)return gtoast('Пользователь не найден');
-     const{error}=await sb.rpc('set_role',{target:data.id,new_role:'designer'});
-     if(error)return gtoast('Ошибка: '+error.message);$('#teamUser').value='';gtoast('Дизайнер назначен');refreshStaff()});
-    $('#teamList').addEventListener('click',async e=>{const b=e.target.closest('[data-unrole]');if(!b)return;
-     const{error}=await sb.rpc('set_role',{target:b.dataset.unrole,new_role:'client'});
-     gtoast(error?'Ошибка: '+error.message:'Роль снята');refreshStaff()});
+     const role=$('#teamRole').value;
+     const{error}=await sb.rpc('set_role',{target:data.id,new_role:role});
+     if(error)return gtoast('Ошибка: '+error.message);$('#teamUser').value='';gtoast(role==='manager'?'Менеджер назначен':'Дизайнер назначен');refreshStaff()});
+    $('#teamList').addEventListener('change',async e=>{const sel=e.target.closest('[data-role-for]');if(!sel)return;
+     const{error}=await sb.rpc('set_role',{target:sel.dataset.roleFor,new_role:sel.value});
+     gtoast(error?'Ошибка: '+error.message:(sel.value==='client'?'Роль снята':'Роль изменена'));refreshStaff()});
     function renderAssign(c){const box=$('#stAssign');box.hidden=!PROF||PROF.role!=='owner';if(box.hidden)return;
      box.innerHTML=`<div class="who" style="margin-bottom:6px">Дизайнер диалога</div><div class="send"><select id="asSel" aria-label="Дизайнер"><option value="">— не назначен —</option>${ST.designers.map(d=>`<option value="${d.id}"${d.id===c.designer_id?' selected':''}>${esc(d.full_name)} (@${esc(d.username)})</option>`).join('')}</select><button class="btn" id="asBtn" type="button">Сохранить</button></div>`;
      $('#asBtn').onclick=async()=>{const{error}=await sb.from('conversations').update({designer_id:$('#asSel').value||null}).eq('id',c.id);
@@ -1436,7 +1477,7 @@
      const{data}=await sb.from('messages').select('*').eq('conversation_id',ST.id).order('created_at');
      (data||[]).forEach(m=>renderMsg($('#stChat'),m,ST.seen))});
     $('#stForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#stIn').value.trim();if(!v||!ST.id)return;$('#stIn').value='';postMsg(ST,$('#stChat'),v)});
-
+    
     /* окно проверки проекта */
     const RV={p:null,calc:null,adj:[]};
     const rvmsg=t=>showMsg('#rvMsg',t);
@@ -1469,21 +1510,37 @@
      $('#reviewModal').hidden=true;gtoast(decision==='approved'?'Проект согласован, клиент увидит расчёт':'Проект возвращён на доработку');refreshStaff()}
     $('#rvOk').onclick=()=>decide('approved');
     $('#rvRev').onclick=()=>decide('revision');
-
+    
     /* раздел «Обращения» (форма внизу главной страницы) */
+    let LEADS_RECIP=false; // есть ли в базе колонка recipient (выполнена ли миграция 06)
     async function refreshLeads(){
-     let q=sb.from('leads').select('id,name,phone,status,created_at,taker:profiles!leads_taken_by_fkey(full_name)').order('created_at',{ascending:false}).limit(200);
-     if(ST.leadFilter!=='all')q=q.eq('status',ST.leadFilter);
-     const{data,error}=await q;
+     const owner=PROF.role==='owner';
+     const q=cols=>{let x=sb.from('leads').select(cols).order('created_at',{ascending:false}).limit(200);
+      if(ST.leadFilter!=='all')x=x.eq('status',ST.leadFilter);
+      if(owner&&ST.leadRecip!=='all')x=x.eq('recipient',ST.leadRecip);return x};
+     const base='id,name,phone,status,created_at,taker:profiles!leads_taken_by_fkey(full_name)';
+     let r=await q(base+',topic,recipient');LEADS_RECIP=!r.error;
+     if(r.error&&/recipient|topic/i.test(String(r.error.message||'')))r=await q(base+',topic');
+     if(r.error&&/topic/i.test(String(r.error.message||'')))r=await q(base);
+     const{data,error}=r;
+     $('#leadRecipFilters').hidden=!(owner&&LEADS_RECIP);
+     const intro={owner:'Все обращения с формы «Получить консультацию» внизу главной страницы: и адресованные менеджеру, и дизайнеру. Это не диалоги по планировке.',
+      manager:'Обращения с формы внизу главной страницы, которые клиенты адресовали менеджеру.',designer:'Обращения с формы внизу главной страницы, которые клиенты адресовали дизайнеру. Диалоги по планировке находятся в разделе «Планировки».'};
+     $('#leadIntro').textContent=LEADS_RECIP?(intro[PROF.role]||intro.owner):'Обращения с формы «Получить консультацию» внизу главной страницы. Это не диалоги по планировке.';
      if(error){$('#leadList').innerHTML='<p class="who">Не удалось загрузить обращения.</p>';return}
-     $('#leadList').innerHTML=(data&&data.length)?data.map(l=>`<div class="card" style="margin-bottom:10px"><div class="send" style="align-items:center;flex-wrap:wrap"><b style="flex:1">${esc(l.name)}</b><span class="badge b-${LCLS[l.status]}">${LST[l.status]}</span></div><p style="margin:6px 0"><a href="tel:${esc(l.phone.replace(/[^\d+]/g,''))}">${esc(l.phone)}</a> <span class="who">· ${esc(fmtDT(l.created_at))}${l.taker?' · взял(а): '+esc(l.taker.full_name):''}</span></p><div class="row">${l.status==='new'?`<button class="btn" data-la="take" data-id="${l.id}">Взять в работу</button>`:''}${l.status==='in_work'?`<button class="btn" data-la="done" data-id="${l.id}">Закрыть</button>`:''}${l.status==='done'?`<button class="btn ghost" data-la="take" data-id="${l.id}">Вернуть в работу</button>`:''}</div></div>`).join(''):'<p class="who">Обращений нет.</p>'}
+     $('#leadList').innerHTML=(data&&data.length)?data.map(l=>{const rc=l.recipient==='designer'?['дизайнеру','approved','to-manager','Передать менеджеру']:['менеджеру','submitted','to-designer','Передать дизайнеру'];
+      return `<div class="card" style="margin-bottom:10px"><div class="send" style="align-items:center;flex-wrap:wrap"><b style="flex:1">${esc(l.name)}</b>${LEADS_RECIP?`<span class="badge b-${rc[1]}">Кому: ${rc[0]}</span>`:''}<span class="badge b-${LCLS[l.status]}">${LST[l.status]}</span></div><p style="margin:6px 0"><a href="tel:${esc(l.phone.replace(/[^\d+]/g,''))}">${esc(l.phone)}</a> <span class="who">· ${esc(fmtDT(l.created_at))}${l.taker?' · взял(а): '+esc(l.taker.full_name):''}</span></p>${l.topic?`<p style="margin:6px 0"><b>Тема:</b> ${esc(l.topic)}</p>`:''}<div class="row">${l.status==='new'?`<button class="btn" data-la="take" data-id="${l.id}">Взять в работу</button>`:''}${l.status==='in_work'?`<button class="btn" data-la="done" data-id="${l.id}">Закрыть</button>`:''}${l.status==='done'?`<button class="btn ghost" data-la="take" data-id="${l.id}">Вернуть в работу</button>`:''}${LEADS_RECIP?`<button class="btn ghost" data-la="${rc[2]}" data-id="${l.id}">${rc[3]}</button>`:''}</div></div>`}).join(''):'<p class="who">Обращений нет.</p>'}
+    $('#leadRecipFilters').addEventListener('click',e=>{const b=e.target.closest('[data-lr]');if(!b)return;ST.leadRecip=b.dataset.lr;
+     [...$('#leadRecipFilters').children].forEach(x=>x.setAttribute('aria-pressed',x===b));refreshLeads()});
     $('#leadFilters').addEventListener('click',e=>{const b=e.target.closest('[data-lf]');if(!b)return;ST.leadFilter=b.dataset.lf;
      [...$('#leadFilters').children].forEach(x=>x.setAttribute('aria-pressed',x===b));refreshLeads()});
     $('#leadList').addEventListener('click',async e=>{const b=e.target.closest('[data-la]');if(!b)return;
-     const patch=b.dataset.la==='done'?{status:'done'}:{status:'in_work',taken_by:PROF.id};
+     const a=b.dataset.la;
+     // при передаче другому адресату обращение снова становится новым и ни за кем не закреплено
+     const patch=a==='done'?{status:'done'}:a==='to-designer'?{recipient:'designer',status:'new',taken_by:null}:a==='to-manager'?{recipient:'manager',status:'new',taken_by:null}:{status:'in_work',taken_by:PROF.id};
      const{error}=await sb.from('leads').update(patch).eq('id',b.dataset.id);
      gtoast(error?'Ошибка: '+error.message:'Сохранено');refreshStaff()});
-
+    
     /* раздел «Записи на консультацию» */
     async function refreshBookings(){
      const{data,error}=await sb.from('bookings').select('id,starts_at,status,topic,designer_id,client:profiles!bookings_client_id_fkey(full_name,username'+(HAS_PHONE?',phone':'')+'),designer:profiles!bookings_designer_id_fkey(full_name),project:projects(title)').gte('starts_at',new Date(Date.now()-7*864e5).toISOString()).order('starts_at').limit(200);
@@ -1498,7 +1555,7 @@
      if(a==='cancel'&&!confirm('Отменить запись клиента?'))return;
      const{error}=await sb.from('bookings').update(patch).eq('id',b.dataset.id);
      gtoast(error?'Ошибка: '+error.message:'Сохранено');refreshStaff()});
-
+    
     /* диагностика связи: откройте сайт с добавкой ?diag=1 к адресу */
     async function runDiag(){
      const box=document.createElement('div');
@@ -1533,7 +1590,7 @@
       if(has('Чат в реальном'))lines.push('• Чат в реальном времени не подключается; вход и проекты при этом могут работать.')}
      out()}
     if(/[?&]diag=1/.test(location.search||''))runDiag();
-
+    
     authUI();loadProfile();
 </script>
 </body>
