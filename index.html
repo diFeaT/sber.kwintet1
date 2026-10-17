@@ -872,34 +872,86 @@
      if(!S.loaded||S.loaded!==S.model){ // первый заход или выбор готовой модели с главной
        const mid=S.model&&PRESET_IDS.includes(S.model)?S.model:'oz';
        S.loaded=mid;S.projectId=null;S.projectTitle='';
-       window.LT_loadPreset(mid);afterCtorChange(true)}
+       let applied=false;
+       if(draftSkipped){draftSkipped=false;const d=loadDraft(); // восстановление локального черновика (один раз за сессию)
+        if(d&&window.LT_loadConfig){LT_loadConfig(d.cfg);S.projectTitle=d.title||'';applied=true;
+         gtoast('Восстановлен несохранённый черновик из этого браузера. Чтобы передать проект дизайнеру — нажмите «Сохранить и отправить».');}}
+       if(!applied)window.LT_loadPreset(mid);
+       afterCtorChange(true)}
      else if(window.LT_syncUI)window.LT_syncUI();
-     updateProjName()}
+     fillOpRooms();updateProjName()}
     const PRESET_IDS=['les','oz','sem'];
     function afterCtorChange(resetHist){if(resetHist)window.LT_clearHist&&LT_clearHist();
      window.LT_updateRoofGeom&&LT_updateRoofGeom();
      window.LT_syncUI&&LT_syncUI();
      drawInteriorSafe();markDirty()}
     /* общий сигнал «проект изменён»: предупреждаем, если клиент уходит с несохранёнными правками */
+    function markDirty(){try{window.LT_markDirty&&LT_markDirty()}catch(e){}} // локальный сигнал + мост модуля (автосохранение черновика)
     window.LT_markDirty=function(){$('#dirtyWarn').hidden=false;$('#saveStatus').className='save-status dirty';
-     clearTimeout(SAVE_T);SAVE_T=setTimeout(()=>{$('#saveStatus').className='save-status';$('#saveStatus').title='Изменения пока не отправлены дизайнеру'},600)};
+     clearTimeout(SAVE_T);SAVE_T=setTimeout(()=>{saveDraft();$('#saveStatus').className='save-status';$('#saveStatus').textContent='Черновик сохранён в этом браузере'},900)};
     window.LT_onHistory=function(){const ub=$('#undoBtn'),rb=$('#redoBtn');
      if(ub)ub.disabled=!HIST_can('undo');if(rb)rb.disabled=!HIST_can('redo')};
     function HIST_can(dir){try{const s=window.LT_snapshot&&LT_snapshot();const empty=dir==='undo'&&!s;return !empty}catch(e){return true}}
     function updateProjName(){const i=$('#projName');if(i)i.value=S.projectTitle||''}
+    /* ---- локальный черновик: восстановление после случайного закрытия вкладки.
+       Это ДОПОЛНЕНИЕ к серверному сохранению (отправка дизайнеру), а не его замена. ---- */
+    const DRAFT_KEY='lt_draft_v3';
+    let draftSkipped=true; // первый заход: черновик применяем один раз, до загрузки пресета
+    function saveDraft(){try{if(!S.rooms.filter(r=>!r.gone).length)return;
+     localStorage.setItem(DRAFT_KEY,JSON.stringify({t:Date.now(),title:S.projectTitle||'',cfg:serializeProject()}))}catch(e){}}
+    function loadDraft(){try{const d=JSON.parse(localStorage.getItem(DRAFT_KEY)||'null');
+     return d&&d.cfg&&Array.isArray(d.cfg.rooms)&&d.cfg.rooms.length?d:null}catch(e){return null}}
     /* кнопки верхней панели конструктора */
     function bindCtorUI(){
      $('#undoBtn').onclick=()=>{window.LT_undo&&LT_undo();afterCtorChange();drawInteriorSafe()};
      $('#redoBtn').onclick=()=>{window.LT_redo&&LT_redo();afterCtorChange();drawInteriorSafe()};
      $('#toChat').onclick=()=>openSubmit('config');
      const pn=$('#projName');
-     pn.onchange=()=>{const t=pn.value.trim();if(t&&S.projectId&&!sb){}S.projectTitle=t};
+     pn.onchange=()=>{const t=pn.value.trim();S.projectTitle=t;saveDraft()};
      pn.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();pn.blur()}};
+     /* снимки 3D-вида и плана сверху — экспорт картинки текущего состояния */
+     const dl=(url,name)=>{if(!url)return gtoast('Снимок недоступен: сначала откройте 3D-конструктор.');
+      const a=document.createElement('a');a.href=url;a.download=name;a.click()};
+     $('#shotBtn').onclick=()=>{withThree(()=>dl(window.LT_snapshotURL&&LT_snapshotURL(),'lisstvennica-view.jpg'))};
+     $('#shotPlanBtn').onclick=()=>{withThree(()=>{if(!window.LT_sceneReady||!LT_sceneReady())return gtoast('Откройте сначала 3D-вид.');
+      LT_camPreset('top');setTimeout(()=>dl(LT_snapshotURL(),'lisstvennica-plan.jpg'),700)})};
+     $('#printCalcBtn').onclick=()=>{PTAB='calc';go('calc')};
+     /* панель «Планировка»: stepper размеров, стрелки перемещения, поворот/дублирование/удаление */
+     document.addEventListener('click',e=>{
+      const b=e.target.closest('[data-resize],[data-move]');if(!b)return;
+      const r=S.sel&&S.sel.gone!==true?S.sel:null;if(!r)return;
+      const p=(b.dataset.resize||b.dataset.move).split(',').map(Number);
+      if(b.dataset.resize!=null){window.LT_resizeRoom&&LT_resizeRoom(r,r.w+p[0],r.d+p[1]);drawInteriorSafe()}
+      else{window.LT_moveRoom&&LT_moveRoom(r,p[0],p[1]);drawInteriorSafe()}
+     });
+     $('#rotBtn').onclick=()=>{const r=S.sel;if(!r)return;const ok=window.LT_resizeRoom&&LT_resizeRoom(r,r.d,r.w);
+      if(ok){toast('Комната повёрнута: '+r.w+'×'+r.d+' м');drawInteriorSafe()}else gtoast('Повернуть некуда: рядом другая комната.')};
+     $('#dupBtn').onclick=()=>{const r=S.sel;if(!r)return;window.LT_duplicateRoom&&LT_duplicateRoom(r);drawInteriorSafe()};
+     $('#delBtn').onclick=()=>{const r=S.sel;if(!r)return;window.LT_delRoom&&LT_delRoom(r);Iroom=null;drawInteriorSafe()};
+     const rt=$('#rType');if(rt)rt.onchange=()=>{const r=S.sel;if(!r)return;
+      if(window.LT_delNoConfirm){LT_delNoConfirm(r);LT_addRoom(rt.value,r.w,r.d);drawInteriorSafe();markDirty()}};
+     /* заполнение селектора типа комнаты (конструктор и интерьер) */
+     fillRTypes();
+     const rwEl=$('#rw'),rdEl=$('#rd'),raEl=$('#ra');
+     if(rwEl)rwEl.onchange=()=>{const r=S.sel;if(r&&+rwEl.value)LT_resizeRoom(r,+rwEl.value,r.d)};
+     if(rdEl)rdEl.onchange=()=>{const r=S.sel;if(r&&+rdEl.value)LT_resizeRoom(r,r.w,+rdEl.value)};
+     if(raEl)raEl.onchange=()=>{const r=S.sel;if(!r||!+raEl.value)return;const d=clamp(Math.round(+raEl.value/r.w),1,12);LT_resizeRoom(r,r.w,d)};
+     /* проём для выбранной комнаты из тулбара (кнопка «Добавить» на стене — в панели «Экстерьер») */
+     const ors=$('#opRoomSel');
+     if(ors)ors.onchange=()=>{if(window.LT_selectRoomById)LT_selectRoomById(ors.value)};
+    }
+    function fillOpRooms(){const sel=$('#opRoomSel');if(!sel)return;const cur=sel.value;
+     sel.innerHTML=S.rooms.filter(r=>!r.gone&&!TYPES()[r.type].open).map(r=>`<option value="${r.id}">${esc(T_OF(r.type).n)} · ${r.w}×${r.d}</option>`).join('')||'<option value="">Нет комнат</option>';
+     if(cur)sel.value=cur}
+    /* селекторы типа комнаты: #rType (конструктор), #iType (интерьер) */
+    function fillRTypes(){
+     const rt=$('#rType');if(rt&&!rt.options.length)rt.innerHTML=Object.entries(TYPES()).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
+     const it=$('#iType');if(it&&!it.options.length)it.innerHTML=Object.entries(TYPES()).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
     }
     /* сохранение имени проекта перед уходом со страницы (закрытие вкладки может быть мгновенным) */
     addEventListener('beforeunload',()=>{
      const dirty=!$('#dirtyWarn').hidden;
-     if(dirty&&S.rooms.filter(r=>!r.gone).length&&!$('#view-config').hidden)event&&(event.returnValue='');
+     if(dirty&&S.rooms.filter(r=>!r.gone).length&&!$('#view-config').hidden){saveDraft();event&&(event.returnValue='')}
     });
 
     /* ============================================================
@@ -1251,7 +1303,8 @@
      S.model='proj';S.loaded='proj';go('config');
      S.projectId=preview?null:(meta&&meta.id)||null;S.projectTitle=preview?'':(meta&&meta.title)||'';
      if(window.LT_loadConfig){LT_loadConfig(c);S.loaded='proj';S.model='proj';}
-     Iroom=null;renderCfg();
+     Iroom=null;draftSkipped=false; // открыли проект с сервера — локальный черновик не накладываем
+     renderCfg();fillOpRooms();
      $('#dirtyWarn').hidden=true;
      gtoast(preview?'Проект клиента открыт для просмотра. Изменения не сохраняются.':(meta&&meta.status==='paid'?'Проект оплачен: отправить изменения нельзя.':'Проект загружен. Если измените его и отправите снова, потребуется новое согласование.'))}
     

@@ -846,6 +846,7 @@ function bindPanels(){
    if((v=one('roomwall'))&&r){r.wallId=v;applyRoomWall(r);pushHist();syncUI();markDirty();return}
    if((v=one('roomfloor'))&&r){r.floorId=v;setFloor(r);pushHist();syncUI();markDirty();if(window.drawInterior)drawInterior();return}
    if(d.extra){const k=d.extra;S[k]=!S[k];b.setAttribute('aria-pressed',String(S[k]));updateCanopySteps();pushHist();markDirty();return}
+   if(d.newroom){addRoom(d.newroom);return}
    if(d.opside&&r){ // добавить проём указанного типа на указанную сторону
      const typeSel=document.getElementById('opTypeSel');
      addOpening(r.id,d.opside,(typeSel&&typeSel.value)||window.OP_TYPE||'win');return}
@@ -980,6 +981,18 @@ window.LT_addRoomNoHist=function(type,w,d,px,pz,extra){
  setFloor(r);select(r);return r;
 };
 window.LT_updateRoofGeom=updateRoofGeom;
+window.LT_addOpening=addOpening;
+/* кнопки «Добавить комнату» и «Мебель выбранной комнаты» — контейнеры создаёт index.html */
+function fillDynamicLists(){
+ const ar=document.getElementById('addRow');
+ if(ar&&!ar.dataset.filled){ar.dataset.filled='1';
+  ar.innerHTML=Object.entries(TYPES).map(([k,v])=>`<button class="chip" data-newroom="${k}">${v.n}<small>${v.w}×${v.d} м</small></button>`).join('')}
+ const fu=document.getElementById('furnAdd');
+ if(fu){const r=S.sel&&!S.sel.gone?S.sel:null;
+  const keys=r?(ROOM_FURN[r.type]||Object.keys(FLIST)):[];
+  fu.innerHTML=r?keys.map(k=>{const b=FLIST[k];return b?`<button class="chip" data-addfurn="${k}">${b.ic} ${b.n}<small>${b.p?'+'+(+b.p).toLocaleString('ru-RU')+' ₽':'входит в цену'}</small></button>`:''}).join('')||'<p class="who">Для этой комнаты мебели нет.</p>':'<p class="who">Сначала выберите комнату.</p>'}
+}
+const _syncUI0=syncUI;syncUI=function(){_syncUI0();fillDynamicLists()};
 /* функции для панелей index.html (добавление комнат, перемещение, дублирование) */
 window.LT_addRoom=addRoom;window.LT_moveRoom=move;window.LT_duplicateRoom=duplicateRoom;window.LT_delRoom=del;
 window.LT_resizeRoom=resize;window.LT_selectRoom=select;window.LT_spot=spot;window.LT_freeSpot=function(w,d){const p=spot(w,d);return p};
