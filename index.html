@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Лиственница — модульные дома под ключ</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700;800&display=swap">
+    <link rel="stylesheet" href="css/style.css">
     <style>
         :root{--bg:#f4f6f2;--surface:#fff;--ink:#1c2a25;--muted:#5b6a63;--pine:#23473c;--pine-ink:#fff;--larch:#c48a3f;--line:#dbe2dc;
         box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -121,11 +122,11 @@
             <button data-go="home" data-anchor="reviews">Отзывы</button>
             <button data-go="home" data-anchor="faq">Вопросы</button>
             <button data-go="home" data-anchor="contact">Контакты</button>
-            <button data-go="config" style="background:var(--larch);color:#1c1408;font-weight:700">Конструктор</button>
+            <button class="nav-cta" data-go="config">Конструктор</button>
             <button data-go="interior">Интерьер</button>
-            <button id="authBtn" style="border:2px solid var(--pine);font-weight:700">Войти</button>
+            <button id="authBtn" class="nav-auth">Войти</button>
             <button id="outBtn" hidden>Выйти</button>
-            <button id="staffBtn" hidden style="border:2px solid var(--larch);font-weight:700">Панель</button>
+            <button id="staffBtn" hidden class="nav-staff">Панель</button>
         </nav>
     </div>
 </header>
@@ -269,70 +270,182 @@
             <h1 style="font-size:clamp(1.8rem,4vw,2.6rem)">3D-конструктор дома</h1>
             <p>Одна клетка на земле равна 1 м². Добавляйте комнаты, задавайте их размеры и материалы, а затем отправьте
                 проект дизайнеру.</p>
+            <div class="modes" role="tablist" aria-label="Режимы конструктора">
+                <button class="chip mode" role="tab" data-mode="overview" aria-selected="true">Обзор<small>готовые ракурсы</small></button>
+                <button class="chip mode" role="tab" data-mode="exterior" aria-selected="false">Экстерьер<small>фасад, крыша, проёмы</small></button>
+                <button class="chip mode" role="tab" data-mode="layout" aria-selected="false">Планировка<small>комнаты на участке</small></button>
+                <button class="chip mode" role="tab" data-mode="interior" aria-selected="false">Интерьер<small>мебель и полы</small></button>
+                <button class="chip mode" role="tab" data-mode="materials" aria-selected="false">Материалы<small>отделка дома</small></button>
+            </div>
+            <div class="toolbar" aria-label="Действия">
+                <button class="chip tbtn" id="undoBtn" title="Отменить (Ctrl+Z)" disabled>↩︎ Отменить</button>
+                <button class="chip tbtn" id="redoBtn" title="Повторить (Ctrl+Shift+Z)" disabled>↪︎ Вернуть</button>
+                <span class="tsep"></span>
+                <label class="tsel">Комната<select id="opRoomSel" aria-label="Комната для проёма"></select></label>
+                <label class="tsel">Тип проёма<select id="opTypeSel" aria-label="Тип проёма">
+                    <option value="win">Окно</option><option value="pano">Панорамное окно</option>
+                    <option value="door">Входная дверь</option><option value="gdoor">Сдвиговое остекление</option>
+                </select></label>
+                <span class="tsep"></span>
+                <button class="chip tbtn" id="shotBtn" title="Сохранить картинку текущего вида">📷 Вид</button>
+                <button class="chip tbtn" id="shotPlanBtn" title="Сохранить картинку плана сверху">📐 План</button>
+                <button class="chip tbtn" id="printCalcBtn">💵 Расчёт и стоимость</button>
+            </div>
             <div class="cfg3" id="cfgBox">
                 <div class="stage" id="stage">
                     <canvas id="c3d" aria-label="3D-модель дома"></canvas>
                     <div class="hud">
                         <button class="chip" data-cam="iso">Обзор</button>
                         <button class="chip" data-cam="top">Сверху</button>
+                        <button class="chip" data-cam="front">Спереди</button>
+                        <button class="chip" data-cam="side">Сбоку</button>
+                        <button class="chip" data-cam="fit">По размеру</button>
+                        <button class="chip" id="ceilToggle" aria-pressed="true" title="Показывать/скрывать потолок и верх стен">⌂ Потолок</button>
+                        <button class="chip" id="envToggle" aria-pressed="true" title="Лес, земля и небо вокруг дома">🌲 Лес</button>
                     </div>
                     <div id="toast" role="status"></div>
-                    <div class="hint">Тяните комнату, чтобы переместить. Тяните фон, чтобы повернуть. Двумя пальцами
-                        приближайте.
-                    </div>
+                    <div class="hint" id="hint">Тяните комнату, чтобы переместить. Тяните фон, чтобы повернуть. Двумя пальцами приближайте.</div>
                 </div>
                 <div id="panel">
                     <div class="card">
-                        <div id="tArea" class="who"></div>
-                        <div class="total" id="tPrice"></div>
-                        <p class="who" style="margin:4px 0 0">Цена модулей. Фундамент и мебель считаем при
-                            согласовании.</p>
+                        <div class="infostrip">
+                            <div><b id="tAreaNum">—</b><span>площадь</span></div>
+                            <div><b id="tPrice">—</b><span>стоимость модулей</span></div>
+                        </div>
+                        <p class="who" style="margin:6px 0 0"><span id="tArea"></span> Фундамент и мебель считаем при согласовании.</p>
                         <button class="btn" id="toChat" style="width:100%;margin-top:10px">Отправить дизайнеру</button>
                     </div>
-                    <div class="card"><h3>Добавить комнату</h3>
-                        <div class="opt" id="oTypes" style="margin:0"></div>
+
+                    <!-- ПАНЕЛЬ: ОБЗОР -->
+                    <div class="card cmode" id="panel-overview">
+                        <h3>Готовые виды</h3>
+                        <div class="opt" style="margin:0">
+                            <button class="chip" data-cam="iso">Изометрия</button>
+                            <button class="chip" data-cam="top">Сверху</button>
+                            <button class="chip" data-cam="front">Фасад</button>
+                            <button class="chip" data-cam="side">Торец</button>
+                            <button class="chip" data-cam="reset">Сброс камеры</button>
+                        </div>
+                        <p class="who" style="margin:10px 0 0">«Обзор» — режим осмотра: тяните фон, чтобы повернуть дом; кнопки дают готовые ракурсы. Переключатель «Потолок» открывает вид на комнаты изнутри.</p>
                     </div>
-                    <div class="card" id="selBox"><h3 id="selT">Выбранная комната</h3>
-                        <label class="fld">Тип<select id="rType"></select></label>
-                        <div class="fld">Ширина, м
-                            <div class="stepper">
-                                <button class="chip" data-a="w-" aria-label="Уже">−</button>
-                                <input id="rw" type="number" min="1" max="16">
-                                <button class="chip" data-a="w+" aria-label="Шире">+</button>
-                            </div>
-                        </div>
-                        <div class="fld">Длина, м
-                            <div class="stepper">
-                                <button class="chip" data-a="d-" aria-label="Короче">−</button>
-                                <input id="rd" type="number" min="1" max="12">
-                                <button class="chip" data-a="d+" aria-label="Длиннее">+</button>
-                            </div>
-                        </div>
-                        <div class="fld">Площадь, м²<input id="ra" type="number" min="1" max="144"><span class="who">Введите нужную площадь: длина подберётся по сетке.</span>
-                        </div>
-                        <div class="row" style="align-items:center">
-                            <div class="pad"><span></span>
-                                <button class="chip" data-a="u" aria-label="Вверх">↑</button>
-                                <span></span>
-                                <button class="chip" data-a="l" aria-label="Влево">←</button>
-                                <button class="chip" data-a="dn" aria-label="Вниз">↓</button>
-                                <button class="chip" data-a="r" aria-label="Вправо">→</button>
-                            </div>
-                            <div style="display:grid;gap:6px">
-                                <button class="chip" data-a="rot">Повернуть</button>
-                                <button class="chip" data-a="del">Удалить</button>
+
+                    <!-- ПАНЕЛЬ: ПЛАНИРОВКА -->
+                    <div class="card cmode" id="panel-layout" hidden>
+                        <h3>Добавить комнату</h3>
+                        <div class="opt" id="addRow" style="margin:0 0 10px"></div>
+                        <div class="opt" id="roomList" style="margin:0 0 10px"></div>
+                        <div class="card" id="selBox" style="box-shadow:none;padding:14px;margin:0">
+                            <h3 id="selT" style="margin-top:0">Выберите комнату кликом</h3>
+                            <p id="selEmpty" class="who" style="margin:0">Кликните комнату на плане или в списке выше — здесь появятся её размеры и положение.</p>
+                            <div id="roomProps" hidden>
+                                <label class="fld">Тип комнаты<select id="rType"></select></label>
+                                <div class="dims">
+                                    <div class="fld">Ширина, м
+                                        <div class="stepper">
+                                            <button class="chip" data-a="w-" aria-label="Уже">−</button>
+                                            <input id="rw" type="number" min="1" max="16" inputmode="numeric">
+                                            <button class="chip" data-a="w+" aria-label="Шире">+</button>
+                                        </div>
+                                    </div>
+                                    <div class="fld">Глубина, м
+                                        <div class="stepper">
+                                            <button class="chip" data-a="d-" aria-label="Короче">−</button>
+                                            <input id="rd" type="number" min="1" max="12" inputmode="numeric">
+                                            <button class="chip" data-a="d+" aria-label="Длиннее">+</button>
+                                        </div>
+                                    </div>
+                                    <div class="fld">Площадь, м²<input id="ra" type="number" min="1" max="192" inputmode="numeric">
+                                        <span class="who">Можно ввести площадь — длина подберётся по сетке.</span></div>
+                                </div>
+                                <div class="row" style="align-items:center">
+                                    <div class="pad"><span></span>
+                                        <button class="chip" data-a="u" aria-label="Вверх">↑</button><span></span>
+                                        <button class="chip" data-a="l" aria-label="Влево">←</button>
+                                        <button class="chip" data-a="dn" aria-label="Вниз">↓</button>
+                                        <button class="chip" data-a="r" aria-label="Вправо">→</button>
+                                    </div>
+                                    <div style="display:grid;gap:6px">
+                                        <button class="chip" data-a="rot">Повернуть</button>
+                                        <button class="chip" data-a="dup">Дублировать</button>
+                                        <button class="chip" data-a="del" style="border-color:#b3261e;color:#b3261e">Удалить</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card"><h3>Материалы</h3>
-                        <p class="who" style="margin:0 0 6px">Стены</p>
-                        <div class="opt" id="oWall"></div>
-                        <p class="who" style="margin:0 0 6px">Пол</p>
-                        <div class="opt" id="oFloor"></div>
-                        <div class="opt" id="oRoof" style="margin:0"></div>
+
+                    <!-- ПАНЕЛЬ: ЭКСТЕРЬЕР -->
+                    <div class="card cmode" id="panel-exterior" hidden>
+                        <h3>Проёмы: окна и двери</h3>
+                        <p class="who" style="margin:0 0 8px">Выберите комнату и тип проёма в верхней панели, затем нажмите кнопку нужной стены. Кликните готовый проём на модели, чтобы подвинуть его или удалить. На одной стене — один проём.</p>
+                        <div class="opt" id="opAddRow" style="margin:0 0 10px">
+                            <button class="chip" data-opside="N">На северную стену</button>
+                            <button class="chip" data-opside="E">На восточную</button>
+                            <button class="chip" data-opside="S">На южную (фасад)</button>
+                            <button class="chip" data-opside="W">На западную</button>
+                        </div>
+                        <div class="card" id="opProps" hidden style="box-shadow:none;padding:14px;margin:0 0 10px">
+                            <h3 id="opTitle" style="margin-top:0">Проём</h3>
+                            <p class="who" style="margin:0 0 8px">Стена: <b id="opSideVal"></b></p>
+                            <div class="row">
+                                <button class="chip" data-opmove="-1">← Сдвинуть влево</button>
+                                <button class="chip" data-opmove="1">Сдвинуть вправо →</button>
+                                <button class="chip" data-opdel style="border-color:#b3261e;color:#b3261e">Удалить проём</button>
+                            </div>
+                        </div>
+                        <h3>Экстерьер</h3>
+                        <div class="opt" style="margin:0">
+                            <button class="chip" data-extra="canopy" aria-pressed="false">Навес над входом<small>+ к стоимости</small></button>
+                            <button class="chip" data-extra="steps" aria-pressed="false">Ступени крыльца<small>+ к стоимости</small></button>
+                        </div>
+                    </div>
+
+                    <!-- ПАНЕЛЬ: ИНТЕРЬЕР -->
+                    <div class="card cmode" id="panel-interior" hidden>
+                        <h3>Мебель выбранной комнаты</h3>
+                        <p class="who" style="margin:0 0 8px">Кликните предмет на модели и перетащите его. Здесь же можно добавить мебель и управлять выбранным предметом.</p>
+                        <div class="opt" id="furnAdd" style="margin:0 0 10px"></div>
+                        <div class="card" id="furnProps" hidden style="box-shadow:none;padding:14px;margin:0">
+                            <h3 id="fpName" style="margin-top:0">Предмет</h3>
+                            <div class="row">
+                                <button class="chip" data-frot>Повернуть</button>
+                                <button class="chip" data-fdup>Дублировать</button>
+                                <button class="chip" data-freset>К центру стены</button>
+                                <button class="chip" data-fdel style="border-color:#b3261e;color:#b3261e">Удалить</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ПАНЕЛЬ: МАТЕРИАЛЫ -->
+                    <div class="card cmode" id="panel-materials" hidden>
+                        <h3>Наружная отделка</h3>
+                        <p class="who" style="margin:0 0 6px">Фасад</p>
+                        <div id="mFacade" style="margin-bottom:14px"></div>
+                        <p class="who" style="margin:0 0 6px">Кровля: форма</p>
+                        <div id="mRoofT" style="margin-bottom:10px"></div>
+                        <p class="who" style="margin:0 0 6px">Кровля: цвет</p>
+                        <div id="mRoofC" style="margin-bottom:14px"></div>
+                        <p class="who" style="margin:0 0 6px">Рама окон и дверей</p>
+                        <div id="mFrame" style="margin-bottom:14px"></div>
+                        <p class="who" style="margin:0 0 6px">Стеклопакет</p>
+                        <div id="mGlass" style="margin-bottom:14px"></div>
+                        <h3 style="margin-top:6px">Интерьер</h3>
+                        <p class="who" style="margin:0 0 6px">Пол во всём доме</p>
+                        <div id="mFloor" style="margin-bottom:14px"></div>
+                        <p class="who" style="margin:0 0 6px">Стены внутри</p>
+                        <div id="mIntWall" style="margin-bottom:14px"></div>
+                        <p class="who" style="margin:0 0 6px">Обивка мебели</p>
+                        <div id="mFabric" style="margin-bottom:14px"></div>
+                        <div id="roomFinish" style="border-top:1px solid var(--line-warm,#dbe2dc);padding-top:10px">
+                            <h3 style="margin-top:0">Отделка выбранной комнаты</h3>
+                            <p class="who" style="margin:0 0 8px">Выберите комнату в режиме «Планировка» или «Интерьер» — здесь можно задать пол и стены только для неё.</p>
+                            <div id="mRoomWall" hidden></div>
+                            <div id="mRoomFloor" hidden></div>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="footstrip" id="footStrip" aria-live="polite"></div>
         </div>
     </div>
 
