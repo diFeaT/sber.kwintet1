@@ -852,7 +852,14 @@ function bindPanels(){
    if(d.opmove&&selOp){moveOpening(selOp,+d.opmove);pushHist();markDirty();renderOpPanel();return}
    if(d.opdel&&selOp){removeOpening(selOp);return}
    if(d.selroom){const rr=S.rooms.find(x=>x.id==d.selroom&&!x.gone);if(rr){select(rr);if(MODE==='interior')focusRoom(rr)}return}
-   if(d.addfurn&&window.LT_addFurnFromModule){LT_addFurnFromModule(d.addfurn);return}
+   if(d.addfurn){const r0=S.sel&&!S.sel.gone?S.sel:S.rooms.find(x=>!x.gone);
+     if(!r0){toast('Сначала выберите комнату — мебель добавляется внутрь неё.');return}
+     const b=FLIST[d.addfurn];if(!b)return;
+     if(TYPES[r0.type].open&&b.hang){toast('Подвесной светильник на террасу не подходит.');return}
+     const n=(r0.furn||[]).length,fw=b.w,fd=b.d;
+     const f=window.LT_makeFurn(d.addfurn,clamp(.3*n,0,Math.max(0,r0.w-fw)),clamp(.3*n,0,Math.max(0,r0.d-fd)),false);
+     if(!f)return;r0.furn.push(f);rebuildFurnMeshes(r0);selectFurn(r0,f);pushHist();markDirty();
+     if(window.drawInterior)drawInterior();syncUI();return}
    if(d.frot&&selFurn){const f=selFurn,r0=selFurnRoom||r;if(r0){const of=f.rot?f.d:f.w,od=f.rot?f.w:f.d,cx0=f.x+of/2,cz0=f.z+od/2;
      f.rot=!f.rot;const fw=f.rot?f.d:f.w,fd=f.rot?f.w:f.d;
      f.x=clamp(cx0-fw/2,0,Math.max(0,r0.w-fw));f.z=clamp(cz0-fd/2,0,Math.max(0,r0.d-fd));
@@ -973,6 +980,9 @@ window.LT_addRoomNoHist=function(type,w,d,px,pz,extra){
  setFloor(r);select(r);return r;
 };
 window.LT_updateRoofGeom=updateRoofGeom;
+/* функции для панелей index.html (добавление комнат, перемещение, дублирование) */
+window.LT_addRoom=addRoom;window.LT_moveRoom=move;window.LT_duplicateRoom=duplicateRoom;window.LT_delRoom=del;
+window.LT_resizeRoom=resize;window.LT_selectRoom=select;window.LT_spot=spot;window.LT_freeSpot=function(w,d){const p=spot(w,d);return p};
 window.LT_MAT=MAT;window.LT_MATERIALS=MATERIALS;window.LT_OPEN_TYPES=OPEN_TYPES;window.LT_ROOF_TYPES=ROOF_TYPES;window.LT_ROOF_COLORS=ROOF_COLORS;
 window.LT_FLIST=FLIST;window.LT_ROOM_FURN=ROOM_FURN;window.LT_TYPES=TYPES;
 window.LT_gptLocal=gptLocal;window.LT_positionFurnMesh=positionFurnMesh;
