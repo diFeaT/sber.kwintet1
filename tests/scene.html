@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><title>scene smoke</title>
+<style>html,body{margin:0;height:100%}#w{position:absolute;inset:0}canvas{width:100%;height:100%;display:block}</style>
+<div id="w"><canvas id="c"></canvas></div>
+<script src="../vendor/three.min.js"></script>
+<script type="module">
+import {createScene} from '../js/scene.js';
+import * as L from '../js/layout.js';
+const q=new URLSearchParams(location.search);
+const sc=createScene(document.getElementById('c'));
+const h=L.presetHouse(q.get('m')||'oz');
+window.sc=sc; window.L=L; window.house=h;
+const view={mode:q.get('mode')||'exterior',showRoof:q.get('roof')!=='0',cut:q.get('cut')||'full',env:q.get('env')==='1',time:q.get('time')||'day',shadows:true,plan:false};
+h.roofType=q.get('roofType')||h.roofType; if(q.get('facade')){h.facade=q.get('facade');h.wall=({'larch-v':'wood','larch-h':'wood',plaster:'stone',graphite:'dark','wood-stone':'stone',natural:'stone',brick:'brick'})[h.facade]}
+sc.resize(true); sc.sync(h,view); sc.cam.preset(q.get('cam')||'iso',h); sc.cam.snap();
+window.ready=true;
+</script>
