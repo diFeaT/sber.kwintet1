@@ -10,7 +10,7 @@ import { swatch } from './mats.js';
 let hero = null, heroState = 'idle', thumbs = {}, filters = { bed: 'all', ter: false, sort: 'price' }, io = null;
 
 /* Запасная иллюстрация (SVG), как в прежней версии, в новой палитре */
-function houseSvg(m, f, roofType, terr) {
+export function houseSvg(m, f, roofType, terr) {
   const w = m.w, x = (460 - w) / 2, t = terr ? 110 : 0;
   const roof = roofType === 'gable' ? `<polygon points="${x - 10},170 ${x + w / 2},120 ${x + w + 10},170" fill="#343c35"/>` : `<rect x="${x - 10}" y="160" width="${w + 20}" height="12" fill="#343c35"/>`;
   const wins = [...Array(Math.max(2, Math.round(w / 90)))].map((_, i, a) => `<rect x="${x + 20 + i * ((w - 60) / Math.max(1, a.length - 1))}" y="200" width="40" height="46" fill="#cfdcdc" stroke="#343c35" stroke-width="3"/>`).join('');

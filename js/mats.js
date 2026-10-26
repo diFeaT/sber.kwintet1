@@ -155,7 +155,9 @@ export function createMats(renderer) {
       if (def.cat === 'glass') m = api.glass();
       else {
         const map = tex(def.id, dir, def.tile);
-        m = new T.MeshStandardMaterial({ color: map ? 0xffffff : def.c, map, roughness: def.r, metalness: def.m });
+        // tint — необязательный цвет поверхности (hex-строка) поверх текстуры: умножается на рисунок
+        const base = o.tint ? new T.Color(o.tint) : null;
+        m = new T.MeshStandardMaterial({ color: base || (map ? 0xffffff : def.c), map, roughness: def.r, metalness: def.m });
         if (map && ['wood', 'ashlar', 'rubble', 'brick', 'seam', 'panel', 'tile', 'weave'].includes(def.tex)) { m.bumpMap = map; m.bumpScale = def.tex === 'weave' ? .5 : 1.4 }
         m.envMapIntensity = def.m > .3 ? 1.1 : .5;
       }

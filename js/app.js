@@ -9,17 +9,19 @@ import { calcProject, calcHTML, sumCalc } from './calc.js';
 import { studio } from './studio.js';
 import { ensureThree, THREEMSG } from './three-loader.js';
 import { initHome, pauseHome } from './site.js';
+import { initReady, saveCurrentAsReady, saveReadyEdit } from './ready.js';
 import { chatForProject, generalChat } from './chats.js';
 
 
     /* навигация */
-    const VIEWS=['home','config','profile','staff','calc'];
+    const VIEWS=['home','config','profile','staff','calc','business','ready'];
     function go(v,anchor,opts){
      if(v==='interior'){v='config';opts=Object.assign({mode:'interior'},opts)}
      VIEWS.forEach(x=>{$('#view-'+x).hidden=x!==v});$('#view-chat').hidden=true;
      document.body.dataset.view=v;
      if(v==='config'){pauseHome();$('#view-config').hidden=false;studio.open(opts||{})}else studio.pause();
      if(v==='home')initHome();
+     if(v==='ready')initReady(sb,PROF&&PROF.role);
      if(v==='profile'){renderProfile()}
      if(v==='staff'){renderStaff()}
      if(anchor){setTimeout(()=>{const el=document.getElementById(anchor);el&&el.scrollIntoView()},20)}else{window.scrollTo(0,0)}
@@ -28,10 +30,26 @@ import { chatForProject, generalChat } from './chats.js';
     function $$nav(v){document.querySelectorAll('header nav [data-go]').forEach(b=>{const on=b.dataset.go===v&&!b.dataset.anchor;if(on)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')})}
     document.addEventListener('click',e=>{
      const b=e.target.closest('[data-go]');if(!b)return;
-     const o={};if(b.dataset.pick)o.model=b.dataset.pick;
+     const o={};if(b.dataset.pick)o.model=b.dataset.pick;if(b.dataset.ready)o.ready=b.dataset.ready;
      go(b.dataset.go,b.dataset.anchor,o);
     });
     $('#lead').addEventListener('submit',e=>{e.preventDefault();submitLead(e.target)});
+    $('#bizForm').addEventListener('submit',e=>{e.preventDefault();submitBiz(e.target)});
+    /* заявка от предпринимателя: пишем в существующую таблицу leads (адресат — менеджер), сайт и комментарий — в теме */
+    async function submitBiz(form){const ok=$('#bizOk'),say=t=>{ok.textContent=t;ok.style.display='block'};
+     const fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim(),site=String(fd.get('site')||'').trim(),msg=String(fd.get('message')||'').trim();
+     if(fd.get('website'))return say('Спасибо!');
+     if(!sb)return say('Приём заявок пока не настроен. Напишите нам на почту или позвоните.');
+     if(name.length<2||phone.replace(/\D/g,'').length<6||!site)return say('Проверьте имя, телефон и адрес сайта.');
+     let last=0;try{last=+localStorage.getItem('biz_ts')||0}catch(e){}
+     if(Date.now()-last<60000)return say('Заявка уже отправлена. Если нужно отправить ещё одну, подождите минуту.');
+     const btn=form.querySelector('button[type=submit]');btn.disabled=true;
+     const topic=('Предприниматель. Сайт: '+site+(msg?'. '+msg:'')).slice(0,200);
+     const{error}=await sb.from('leads').insert({name,phone,topic,recipient:'manager'});
+     btn.disabled=false;
+     if(error)return say('Не удалось отправить заявку. Попробуйте ещё раз или позвоните нам.');
+     try{localStorage.setItem('biz_ts',String(Date.now()))}catch(e){}
+     say('Спасибо, '+name+'! Свяжемся с вами в течение рабочего дня.');form.reset()}
     /* ===== Supabase: аккаунты, роли, диалоги, проекты, записи ===== */
     const cfg=window.APP_CONFIG||{};
     const BUILD='2026-10-14, роли и обращения'; // метка версии: видна на странице ?diag=1, помогает понять, что загрузилась свежая версия
@@ -683,6 +701,18 @@ import { chatForProject, generalChat } from './chats.js';
      out()}
     if(/[?&]diag=1/.test(location.search||''))runDiag();
     
-    studio.init({user:()=>PROF,go:(v)=>go(v)});
+    studio.init({user:()=>PROF,go:(v)=>go(v),canManageReady:()=>!!PROF&&(PROF.role==='owner'||PROF.role==='creative')});
+    // открыть готовый дом из базы в конструкторе (тот же загрузчик, что и у сохранённых проектов)
+    window.__openReadyDb=d=>{go('config',null,{readyConfig:d})};
+    $('#toReady').onclick=()=>{if(!sb||!PROF)return;const d=studio.readyDraft();if(!d.rooms)return gtoast('Сначала добавьте хотя бы одну комнату.');$('#readyName').value='';$('#readyNote').value='';$('#readyPub').checked=true;$('#readyMsg').textContent='';$('#readyModal').hidden=false;setTimeout(()=>$('#readyName').focus(),30)};
+    $('#readyX').onclick=()=>$('#readyModal').hidden=true;
+    $('#readyForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('#readyGo');btn.disabled=true;
+     const r=await saveCurrentAsReady({name:$('#readyName').value,note:$('#readyNote').value,published:$('#readyPub').checked},studio.readyDraft());
+     btn.disabled=false;if(r.error){$('#readyMsg').textContent=r.error;return}
+     $('#readyModal').hidden=true;gtoast('Дом добавлен в готовые','ok')});
+    $('#readyEditX').onclick=()=>$('#readyEditModal').hidden=true;
+    $('#readyEditForm').addEventListener('submit',async e=>{e.preventDefault();const id=e.currentTarget.dataset.id;
+     const r=await saveReadyEdit(id,$('#readyEditName').value,$('#readyEditNote').value);
+     if(r.error)return gtoast(r.error);$('#readyEditModal').hidden=true;gtoast('Сохранено','ok')});
     authUI();loadProfile();
     go('home');

@@ -2,7 +2,8 @@
    Все действия описаны атрибутами data-act / data-in и обрабатываются в studio.js. */
 import {
   TYPES, WALLS, FLOORS, FLIST, FCATS, ROOM_FURN, MATERIALS, MCATS, FACADES, ROOF_TYPES, ROOF_MATS, FRAMES, OPENING_KINDS, EXTRA_KINDS,
-  SIDES, GW, GD, H, WALL_FINISHES, FIN_MATS, matById, facadeById, MODELS, PRE, PST, INCLUDED, OPEN_MARGIN, MAX_ROOMS, MAX_AREA_INPUT
+  SIDES, GW, GD, H, WALL_FINISHES, FIN_MATS, matById, facadeById, MODELS, PRE, PST, INCLUDED, OPEN_MARGIN, MAX_ROOMS, MAX_AREA_INPUT,
+  FACADE_TINTS
 } from './data.js';
 import { esc, fmt, fmtM } from './util.js';
 import { swatch } from './mats.js';
@@ -51,12 +52,13 @@ function roofControls(h) {
   <div class="lbl">Материал кровли</div><div class="mgrid sm">${ROOF_MATS.map(id => { const m = matById(id); return `<button type="button" class="mcard" data-act="roofmat" data-v="${id}" aria-pressed="${h.roofMat === id}">${matSw(id)}<b>${m.n}</b></button>` }).join('')}</div>
   ${note('Тип и материал кровли показываются в 3D, но в расчёт не входят: расчёт содержит только строку «Кровля» за м². Уточняет менеджер.')}`;
 }
+const tintControls = h => `<div class="lbl">Цвет фасада</div><div class="opt">${FACADE_TINTS.map(t => `<button type="button" class="chip" data-act="facadetint" data-v="${t.id}" aria-pressed="${(h.facadeTint || 'natural') === t.id}">${t.c ? `<i class="dot" style="background:${t.c}"></i>` : ''}${t.n}</button>`).join('')}</div>${note('Цвет меняет оттенок фасада в 3D. Цена не меняется: она зависит от класса отделки.')}`;
 const frameControls = h => `<div class="lbl">Цвет рам</div><div class="opt">${FRAMES.map(f => `<button type="button" class="chip" data-act="frame" data-v="${f.id}" aria-pressed="${h.frame === f.id}"><i class="dot" style="background:${f.c}"></i>${f.n}</button>`).join('')}</div>`;
 
 function leftExterior(c) {
   const { h } = c, wins = h.rooms.reduce((a, r) => a + r.open.filter(o => !OPENING_KINDS[o.k].door).length, 0), doors = h.rooms.reduce((a, r) => a + r.open.filter(o => OPENING_KINDS[o.k].door).length, 0);
   const f = facadeById(h.facade);
-  return sec('Фасад', `<div class="mgrid">${FACADES.map(x => facadeCard(x, h.facade)).join('')}</div>${note(f.note)}`, 'Наружные стены')
+  return sec('Фасад', `<div class="mgrid">${FACADES.map(x => facadeCard(x, h.facade)).join('')}</div>${note(f.note)}${tintControls(h)}`, 'Наружные стены')
     + sec('Кровля', roofControls(h))
     + sec('Окна и двери', `${note(`Выберите наружную стену на модели — появятся кнопки добавления. Сейчас: окон ${wins}, дверей ${doors}.`)}${frameControls(h)}`)
     + sec('Элементы участка', `<div class="opt">${Object.entries(EXTRA_KINDS).map(([k, K]) => btn('addextra', K.n, { v: k, icon: 'plus' })).join('')}</div>
@@ -100,7 +102,7 @@ function leftMaterials(c) {
   const flt = list => list.filter(m => S.matCat === 'all' || m.cat === S.matCat);
   const cats = `<div class="opt">${[{ id: 'all', n: 'Все' }, ...MCATS].map(x => `<button type="button" class="chip sm" data-act="matcat" data-v="${x.id}" aria-pressed="${S.matCat === x.id}">${x.n}</button>`).join('')}</div>`;
   const withCmp = m => ({ ...m, _cmp: S.cmp.includes(m.id) });
-  if (S.matTarget === 'facade') body = `<div class="mgrid">${FACADES.map(x => facadeCard(x, h.facade)).join('')}</div>${note(facadeById(h.facade).note)}`;
+  if (S.matTarget === 'facade') body = `<div class="mgrid">${FACADES.map(x => facadeCard(x, h.facade)).join('')}</div>${note(facadeById(h.facade).note)}${tintControls(h)}`;
   else if (S.matTarget === 'frame') body = frameControls(h);
   else if (S.matTarget === 'floor' || S.matTarget === 'floorall') {
     const cur = S.matTarget === 'floor' && ar ? (ar.floor || h.floor) : h.floor;

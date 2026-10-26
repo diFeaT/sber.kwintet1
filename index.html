@@ -23,16 +23,15 @@
             <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><rect width="32" height="32" rx="8" fill="currentColor"/><path d="M7 18 16 9l9 9v7H7z" fill="none" stroke="#F3F0E8" stroke-width="2" stroke-linejoin="round"/><path d="M13 25v-5h6v5" fill="none" stroke="#F3F0E8" stroke-width="2"/></svg>
             <span>Лиственница</span>
         </button>
-        <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mainNav"><span>Меню</span></button>
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Тёмная тема" aria-pressed="false" title="Тёмная тема"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
+        <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mainNav"><span>Меню</span></button>
         <nav id="mainNav" aria-label="Основное меню">
-            <button data-go="home" data-anchor="projects">Проекты</button>
-            <button data-go="home" data-anchor="materials">Материалы</button>
             <button data-go="home" data-anchor="reviews">Отзывы</button>
             <button data-go="home" data-anchor="faq">Вопросы</button>
             <button data-go="home" data-anchor="contact">Контакты</button>
             <button data-go="config" class="nav-cta">Конструктор</button>
-            <button data-go="interior">Интерьер</button>
+            <button data-go="ready">Готовые дома</button>
+            <button data-go="business">Предпринимателям</button>
             <button id="authBtn" class="nav-auth">Войти</button>
             <button id="outBtn" hidden>Выйти</button>
             <button id="staffBtn" class="nav-staff" hidden>Панель</button>
@@ -221,6 +220,78 @@
         </footer>
     </div>
 
+    <!-- ПРЕДПРИНИМАТЕЛЯМ -->
+    <div id="view-business" hidden>
+        <section class="hero biz-hero">
+            <div class="wrap narrow">
+                <p class="eyebrow">Для предпринимателей</p>
+                <h1>Конструктор модульных домов на <em>вашем сайте</em></h1>
+                <p class="hero-sub">Встроим наш 3D-конструктор в ваш сайт. Посетитель сам соберёт дом, увидит площадь и предварительную цену, а готовый проект придёт к вам.</p>
+                <div class="row">
+                    <a class="btn primary lg" href="#biz-form">Оставить заявку</a>
+                    <button class="btn ghost lg" data-go="config">Посмотреть конструктор</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="sec">
+            <div class="wrap">
+                <header class="sec-h"><p class="eyebrow">Что получает ваш сайт</p><h2>Посетитель остаётся дольше и приходит с проектом</h2></header>
+                <div class="grid">
+                    <div class="card"><h3>Интерактивный каталог</h3><p>Вместо фотографий — 3D-модель, которую можно повернуть и настроить: фасад, кровлю, комнаты.</p></div>
+                    <div class="card"><h3>Понятная цена</h3><p>Площадь и предварительная стоимость считаются по составу дома. Клиент видит цифры до разговора с менеджером.</p></div>
+                    <div class="card"><h3>Готовый проект в заявке</h3><p>Клиент отправляет не абстрактный запрос, а собранный дом: состав комнат, площадь и отделку.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="sec alt">
+            <div class="wrap">
+                <header class="sec-h"><p class="eyebrow">Сотрудничество</p><h2>Как мы работаем</h2></header>
+                <ol class="steps2">
+                    <li><b>Обсуждаем ваш сайт</b><span>Смотрим каталог, аудиторию и то, как сейчас проходят заявки.</span></li>
+                    <li><b>Адаптируем конструктор</b><span>Подключаем конструктор под ваши модели, цены и фирменный стиль.</span></li>
+                    <li><b>Запускаем</b><span>Встраиваем конструктор на ваш сайт и проверяем сценарий клиента.</span></li>
+                    <li><b>Работаем по условиям</b><span>Оплата складывается из стоимости подключения и процента с продаж через ваш сайт.</span></li>
+                </ol>
+                <p class="demo-note">Точная стоимость подключения и процент от продаж согласовываются индивидуально и фиксируются в договоре.</p>
+            </div>
+        </section>
+
+        <section class="sec" id="biz-form">
+            <div class="wrap narrow">
+                <header class="sec-h"><p class="eyebrow">Заявка</p><h2>Обсудить сотрудничество</h2>
+                    <p>Оставьте контакты и адрес вашего сайта. Мы свяжемся с вами в рабочее время.</p></header>
+                <form class="lead form" id="bizForm">
+                    <input required name="name" placeholder="Ваше имя" aria-label="Имя" autocomplete="name">
+                    <input required name="phone" type="tel" placeholder="Телефон" aria-label="Телефон" autocomplete="tel">
+                    <input required name="site" maxlength="200" placeholder="Адрес вашего сайта" aria-label="Адрес сайта">
+                    <textarea name="message" rows="3" maxlength="500" placeholder="Коротко о бизнесе (необязательно)" aria-label="Сообщение"></textarea>
+                    <input name="website" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+                    <button class="btn primary" type="submit">Отправить заявку</button>
+                    <div class="ok" id="bizOk" role="status"></div>
+                </form>
+            </div>
+        </section>
+    </div>
+
+    <!-- ГОТОВЫЕ ДОМА -->
+    <div id="view-ready" hidden>
+        <section class="sec">
+            <div class="wrap">
+                <header class="sec-h"><p class="eyebrow">Готовые дома</p><h2>Варианты с мебелью</h2>
+                    <p>Готовые сборки на основе моделей каталога: фасад, цвет, пол и расстановка мебели. Открываются в конструкторе, их можно изменить.</p></header>
+                <p class="who" id="readyDbNote"></p>
+                <div class="pgrid" id="readyGrid"></div>
+                <div class="card" id="readyManage" hidden style="margin-top:28px"><h3>Управление готовыми домами</h3>
+                    <p class="who">Добавляйте дома, собранные в конструкторе: они появятся на этой странице. Посетители видят только опубликованные.</p>
+                    <div id="readyManageList"></div>
+                </div>
+                <p class="demo-note">Цены предварительные: модули и мебель считаются по каталогу, фундамент и позиции без цены уточняет менеджер. Названия условные.</p>
+            </div>
+        </section>
+    </div>
+
     <!-- КОНСТРУКТОР -->
     <div id="view-config" class="studio" hidden>
         <div class="st-top">
@@ -238,6 +309,7 @@
                 <button type="button" class="b icon" id="stuHelp" data-act="help" aria-label="Как пользоваться" title="Как пользоваться"></button>
                 <button type="button" class="b danger" id="stuDelete" hidden>Удалить проект</button>
                 <button type="button" class="b primary" id="toChat">Отправить дизайнеру</button>
+                <button type="button" class="b" id="toReady" hidden>В готовые дома</button>
             </div>
         </div>
         <div class="st-banner" id="stuBanner" hidden role="status"><span>Режим просмотра проекта клиента. Ничего не сохраняется и не отправляется.</span><button type="button" class="b sm" id="stuBannerBack">Вернуться в панель</button></div>
@@ -417,11 +489,12 @@
 
             <div id="st-team" hidden>
                 <div class="card" id="teamBox"><h3>Команда и роли</h3>
-                    <p class="who">Менеджер получает обращения, адресованные менеджеру. Дизайнер ведёт диалоги и проекты, получает обращения, адресованные дизайнеру, и записи на консультации. Владелец видит всё.</p>
+                    <p class="who">Менеджер получает обращения, адресованные менеджеру. Дизайнер ведёт диалоги и проекты, получает обращения, адресованные дизайнеру, и записи на консультации. Креативный дизайнер пополняет список готовых домов. Владелец видит всё.</p>
                     <div id="teamList"></div>
                     <form id="teamAdd" class="send wrap-f"><input id="teamUser" placeholder="Юзернейм пользователя" aria-label="Юзернейм"><select id="teamRole" aria-label="Роль">
                         <option value="manager">Менеджер</option>
                         <option value="designer">Дизайнер</option>
+                        <option value="creative">Креативный дизайнер</option>
                     </select>
                         <button class="btn primary" type="submit">Назначить</button>
                     </form>
@@ -464,6 +537,33 @@
     </div>
 
     <div id="gToast" role="status" aria-live="polite"></div>
+
+    <div id="readyModal" class="modal" hidden>
+        <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="readyT">
+            <button class="x" id="readyX" aria-label="Закрыть">×</button>
+            <h2 id="readyT">В готовые дома</h2>
+            <p class="who">Текущий дом из конструктора станет вариантом на странице «Готовые дома». Состав дома можно будет открыть и изменить.</p>
+            <form id="readyForm" class="form" novalidate>
+                <label class="fld">Название дома<input id="readyName" maxlength="80" required></label>
+                <label class="fld">Короткое описание (необязательно)<textarea id="readyNote" rows="2" maxlength="300"></textarea></label>
+                <label class="check"><input type="checkbox" id="readyPub" checked><span>Сразу опубликовать на сайте</span></label>
+                <button class="btn primary block" id="readyGo" type="submit">Добавить в готовые</button>
+                <div class="ok" id="readyMsg" role="alert"></div>
+            </form>
+        </div>
+    </div>
+
+    <div id="readyEditModal" class="modal" hidden>
+        <div class="mbox sm" role="dialog" aria-modal="true" aria-labelledby="readyEditT">
+            <button class="x" id="readyEditX" aria-label="Закрыть">×</button>
+            <h2 id="readyEditT">Изменить дом</h2>
+            <form id="readyEditForm" class="form" novalidate>
+                <label class="fld">Название<input id="readyEditName" maxlength="80" required></label>
+                <label class="fld">Описание<textarea id="readyEditNote" rows="2" maxlength="300"></textarea></label>
+                <button class="btn primary block" type="submit">Сохранить</button>
+            </form>
+        </div>
+    </div>
 
     <div id="authModal" class="modal" hidden>
         <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="authT">

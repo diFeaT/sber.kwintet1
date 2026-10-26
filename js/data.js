@@ -45,6 +45,35 @@ export const MODELS = [
   { id: 'sem', name: 'Семейный', area: 110, rooms: '3 спальни', bedrooms: 3, price: 5800000, w: 340, facade: 'plaster', roofType: 'gable' }
 ];
 
+/* ---------- Готовые дома: варианты с мебелью ----------
+   Основаны на моделях MODELS (состав комнат PRE). Мебель расставляется автоматически в свободное место по FLIST.
+   furn: тип комнаты → список предметов; элемент ['ключ', 'материал'] задаёт отделку (материал должен быть из FIN_MATS). */
+export const READY_HOMES = [
+  { id: 'les-light', base: 'les', name: 'Лесной · светлый', note: 'Лиственница горизонтально, дубовый пол и светлый текстиль.', facade: 'larch-h', floor: 'oak',
+    furn: {
+      liv: [['sofa', 'linen'], 'table-coffee', 'tv', 'plant', ['rug', 'linen']], kit: ['kitchen', 'fridge', 'table'],
+      bed: [['bed', 'linen'], 'nightstand', 'wardrobe'], bath: ['sink', 'toilet', 'shower'], hall: ['wardrobe']
+    } },
+  { id: 'oz-sand', base: 'oz', name: 'Озёрный · песочный', note: 'Светлая штукатурка песочного оттенка, дубовый пол и мягкая мебель.', facade: 'plaster', tint: 'sand', floor: 'oak',
+    furn: {
+      liv: [['sofa', 'boucle'], 'armchair', 'table-coffee', 'tv', 'plant', ['rug', 'boucle']], kit: ['kitchen', 'fridge', 'table'],
+      bed: [['bed', 'linen'], 'nightstand', 'wardrobe'], kid: ['bed-single', 'desk', 'bookshelf'], bath: ['sink', 'toilet', 'bathtub'],
+      hall: ['wardrobe'], ter: ['table', 'armchair']
+    } },
+  { id: 'oz-graphite', base: 'oz', name: 'Озёрный · графит', note: 'Тёмная облицовка, ореховый пол и тёмные акценты в мебели.', facade: 'graphite', floor: 'nut',
+    furn: {
+      liv: [['sofa', 'wool'], 'table-coffee', 'lamp-floor', 'bookshelf', ['rug', 'wool']], kit: ['kitchen', 'fridge', 'table'],
+      bed: [['bed', 'cotton-moss'], 'nightstand', 'wardrobe'], kid: ['bed-single', 'desk'], bath: ['sink', 'toilet', 'shower'],
+      hall: ['wardrobe'], ter: ['table', 'armchair']
+    } },
+  { id: 'sem-family', base: 'sem', name: 'Семейный · просторный', note: 'Дерево и камень, отдельный кабинет и гардеробная.', facade: 'wood-stone', floor: 'oak',
+    furn: {
+      liv: [['sofa', 'boucle'], 'armchair', 'table-coffee', 'tv', 'plant', ['rug', 'linen']], kit: ['kitchen', 'fridge', 'table', 'chair'],
+      bed: [['bed', 'linen'], 'nightstand', 'wardrobe'], kid: ['bed-single', 'desk', 'bookshelf'], off: ['desk', 'bookshelf', 'armchair'],
+      bath: ['sink', 'toilet', 'bathtub'], wr: ['wardrobe'], hall: ['wardrobe'], ter: ['table', 'armchair']
+    } }
+];
+
 /* ---------- Фасады ---------- */
 /* priceClass — id из WALLS: именно он сохраняется в поле wall проекта и используется в расчёте.
    Новых цен не вводим: для каждого фасада сказано, по какому существующему классу он считается. */
@@ -58,6 +87,17 @@ export const FACADES = [
   { id: 'brick', n: 'Кирпич', priceClass: 'brick', base: 'brick', dir: 'v', note: 'Кирпич (вариант из прежней версии конструктора).' }
 ];
 export const facadeById = id => FACADES.find(f => f.id === id);
+
+/* Цвет фасада: необязательное поле house.facadeTint (id из FACADE_TINTS). Не влияет на цену:
+   цена считается по priceClass фасада. Пустое/неизвестное значение = цвет по умолчанию материала. */
+export const FACADE_TINTS = [
+  { id: 'natural', n: 'Натуральный', c: null },
+  { id: 'sand', n: 'Песочный', c: '#d5c5a5' },
+  { id: 'moss', n: 'Мох', c: '#69765b' },
+  { id: 'forest', n: 'Лесной зелёный', c: '#38473a' },
+  { id: 'graphite', n: 'Графит', c: '#343c35' }
+];
+export const tintById = id => FACADE_TINTS.find(t => t.id === id && t.c) || null;
 export const defaultFacadeFor = wall => ({ wood: 'larch-v', dark: 'graphite', stone: 'plaster', brick: 'brick' }[wall] || 'larch-v');
 
 /* ---------- Кровля ---------- */
@@ -184,7 +224,7 @@ export const FIN_MATS = {
 };
 
 export const PST = { submitted: 'На согласовании', revision: 'На доработке', approved: 'Согласован', paid: 'Оплачен' };
-export const ROLE_RU = { client: 'клиент', manager: 'менеджер', designer: 'дизайнер', owner: 'владелец' };
+export const ROLE_RU = { client: 'клиент', manager: 'менеджер', designer: 'дизайнер', creative: 'креативный дизайнер', owner: 'владелец' };
 
 /* Состав комплектации — дословно из текста сайта (FAQ и сноска расчёта прежней версии) */
 export const INCLUDED = 'Доставка до 300 км, сборка, отделка, электрика, сантехника и кухонный блок. Фундамент считается отдельно.';

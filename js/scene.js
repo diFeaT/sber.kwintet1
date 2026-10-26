@@ -2,7 +2,7 @@
    Сцена создаётся один раз и обновляется инкрементально: sync(house, view) пересобирает только то,
    что изменилось (по ключам), а перемещение комнаты — это просто смена позиции группы.
    Рендер по требованию: кадры рисуются, когда движется камера или изменилась сцена. */
-import { GW, GD, H, FLOORS, FACADES, FLIST, EXTRA_KINDS, OPENING_KINDS, matById, facadeById, FRAMES } from './data.js';
+import { GW, GD, H, FLOORS, FACADES, FLIST, EXTRA_KINDS, OPENING_KINDS, matById, facadeById, FRAMES, tintById } from './data.js';
 import { sideInfo, openingProblem, isOpen, furnFoot, bbox, neighbors } from './layout.js';
 import { createMats } from './mats.js';
 import { createFurnitureFactory } from './furniture.js';
@@ -130,7 +130,8 @@ export function createScene(canvas, opts = {}) {
   }
   const facadeMatFor = (room, f) => {
     const spec = f.accent && f.accent.types.includes(room.type) ? f.accent.mat : f.base;
-    return mats.get(spec, { dir: f.dir === 'h' ? 'h' : 'v', wall: true });
+    const tint = tintById(house.facadeTint);
+    return mats.get(spec, { dir: f.dir === 'h' ? 'h' : 'v', wall: true, tint: tint && tint.c });
   };
 
   function buildWall(room, s, rv, sigInfo) {
@@ -224,7 +225,7 @@ export function createScene(canvas, opts = {}) {
     const open = isOpen(room);
     rv.g.position.set(room.x + room.w / 2 - GW / 2, 0, room.z + room.d / 2 - GD / 2);
     const sig = ['n', 'e', 's', 'w'].map(s => sideInfo(house, room, s));
-    const key = JSON.stringify([room.type, room.w, room.d, room.open, house.facade, house.frame, house.roofType, house.roofMat, room.fin.wall, sig.map(i => i.exposed)]);
+    const key = JSON.stringify([room.type, room.w, room.d, room.open, house.facade, house.facadeTint, house.frame, house.roofType, house.roofMat, room.fin.wall, sig.map(i => i.exposed)]);
     if (key !== rv.key) {
       rv.key = key; disposeList(rv.struct);
       rv.walls.forEach(w => rm(w)); rv.walls.clear();

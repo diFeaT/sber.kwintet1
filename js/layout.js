@@ -2,7 +2,8 @@
    Модуль не зависит от DOM и Three.js: его можно тестировать в Node. */
 import {
   GW, GD, H, TYPES, WALLS, FLOORS, FLIST, FACADES, ROOF_TYPES, ROOF_MATS, FRAMES, OPENING_KINDS, OPEN_MARGIN, OPEN_GAP,
-  EXTRA_KINDS, MAX_ROOMS, MAX_FURN, INT_WALL_DEFAULT, WALL_FINISHES, FIN_MATS, PRE, MODELS, facadeById, defaultFacadeFor, matById, SIDES
+  EXTRA_KINDS, MAX_ROOMS, MAX_FURN, INT_WALL_DEFAULT, WALL_FINISHES, FIN_MATS, PRE, MODELS, facadeById, defaultFacadeFor, matById, SIDES,
+  FACADE_TINTS, READY_HOMES
 } from './data.js';
 
 export const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -202,6 +203,28 @@ export function presetHouse(id, overrides) {
   return Object.assign(house, overrides || {});
 }
 
+/* Готовый дом: модель + фасад/цвет/пол из READY_HOMES + мебель. Мебель ставится в свободное место;
+   то, что не поместилось в комнату, пропускается. */
+export function readyHouse(id) {
+  const v = READY_HOMES.find(x => x.id === id); if (!v) return null;
+  const house = presetHouse(v.base);
+  house.facade = v.facade; house.wall = facadeById(v.facade).priceClass;
+  if (FACADE_TINTS.some(t => t.id === v.tint && t.c)) house.facadeTint = v.tint;
+  if (FLOORS.some(f => f.id === v.floor)) house.floor = v.floor;
+  house.rooms.forEach(r => {
+    (v.furn[r.type] || []).forEach(item => {
+      const [key, mat] = Array.isArray(item) ? item : [item, null];
+      const b = FLIST[key]; if (!b) return;
+      const p = findFurnSpot(r, key); if (!p) return;
+      const f = { id: nextId(), key, x: p.x, z: p.z, r: 0, m: null };
+      const fin = b.fin && FIN_MATS[b.fin];
+      if (mat && fin && fin.includes(mat)) f.m = mat;
+      r.furn.push(f);
+    });
+  });
+  return house;
+}
+
 /* Окна на наружных стенах и входная дверь в прихожей (или в первой комнате). Только там, где проверки проходят. */
 export function starterOpenings(house) {
   const tryAdd = (r, s, k) => {
@@ -233,6 +256,8 @@ export function normalizeProject(c) {
   house.wall = wall;
   const fc = facadeById(c.facade);
   house.facade = fc && fc.priceClass === wall ? fc.id : defaultFacadeFor(wall);
+  // необязательный цвет фасада: у старых проектов поля нет — остаётся «натуральный»
+  house.facadeTint = FACADE_TINTS.some(t => t.id === c.facadeTint && t.c) ? c.facadeTint : null;
   house.floor = FLOORS.some(f => f.id === c.floor) ? c.floor : 'oak';
   house.roof = (+c.v >= 2) ? !!c.roof : true;      // у проектов старой версии крыша не сохранялась: показываем её
   house.roofType = ROOF_TYPES.some(t => t.id === c.roofType) ? c.roofType : 'flat';
@@ -292,6 +317,7 @@ export function serializeProject(house) {
     }),
     facade: house.facade, roofType: house.roofType, roofMat: house.roofMat, frame: house.frame
   };
+  if (house.facadeTint) out.facadeTint = house.facadeTint;
   if (house.extras.length) out.extras = house.extras.map(e => ({ k: e.k, x: e.x, z: e.z, w: e.w, d: e.d, r: e.r || 0 }));
   return out;
 }

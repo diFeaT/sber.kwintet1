@@ -3,7 +3,7 @@
    HTML панелей строит js/panels.js. Серверные вызовы (отправка дизайнеру) остаются в js/app.js. */
 import {
   GW, GD, H, MODES, TYPES, FLIST, OPENING_KINDS, EXTRA_KINDS, OPEN_MARGIN, FLOORS, FACADES, FRAMES, ROOF_TYPES, ROOF_MATS, WALL_FINISHES, FIN_MATS,
-  facadeById, matById, MODELS, MAX_ROOMS, MAX_FURN, FGRID, MAX_AREA_INPUT, MCATS, SIDES
+  facadeById, matById, MODELS, READY_HOMES, MAX_ROOMS, MAX_FURN, FGRID, MAX_AREA_INPUT, MCATS, SIDES
 } from './data.js';
 import * as L from './layout.js';
 import { createStore } from './store.js';
@@ -78,6 +78,8 @@ function status() {
   else { txt = 'Новых изменений нет'; cls = 'info' }
   el.textContent = txt; el.dataset.kind = cls;
   $('#stuSave').hidden = S.readOnly; $('#toChat').hidden = S.readOnly;
+  // «В готовые дома»: только владелец и креативный дизайнер, и только в собственном (не клиентском) проекте
+  $('#toReady').hidden = S.readOnly || !(hooks.canManageReady && hooks.canManageReady());
   $('#stuDelete').hidden = S.readOnly || !S.meta.projectId || S.meta.status === 'paid';
   $('#stuBanner').hidden = !S.readOnly;
 }
@@ -140,6 +142,19 @@ function startModel(id) {
   const m = MODELS.find(x => x.id === id) || MODELS[1];
   S.readOnly = false; setHouse(L.presetHouse(m.id), { title: '', projectId: null, status: null, model: m.id });
   S.saveState = 'clean'; if (sc) { sc.cam.preset('iso', H0()); sc.cam.snap() }
+}
+/* Готовый дом с мебелью (READY_HOMES): открывается как новый проект, дальше его можно менять и отправить */
+function startReady(id) {
+  const v = READY_HOMES.find(x => x.id === id) || READY_HOMES[0];
+  S.readOnly = false; setHouse(L.readyHouse(v.id), { title: '', projectId: null, status: null, model: v.base });
+  S.saveState = 'clean'; if (sc) { sc.cam.preset('iso', H0()); sc.cam.snap() }
+}
+/* Готовый дом из базы (таблица ready_homes): config в формате проекта, открывается тем же загрузчиком */
+function startReadyConfig(config, base) {
+  const { house, notes } = L.normalizeProject(config);
+  S.readOnly = false; setHouse(house, { title: '', projectId: null, status: null, model: base || 'proj' });
+  S.saveState = 'clean'; if (sc) { sc.cam.preset('iso', H0()); sc.cam.snap() }
+  return { notes };
 }
 
 /* ---------- правки ---------- */
@@ -343,6 +358,7 @@ const ACT = {
   mode: v => setMode(v), panel: () => setPanel($('#stuBody').classList.contains('panel-off')), tab: v => { S.tab = v; setPanel(true); $('#stuBody').dataset.tab = v; $$('#stuTabs [data-v]').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v)); sc && sc.resize() },
   facade: v => { const f = facadeById(v); mut(h => { h.facade = v; h.wall = f.priceClass }); },
   roofshow: () => mut(h => { h.roof = !h.roof }), rooftype: v => mut(h => { h.roofType = v }), roofmat: v => mut(h => { h.roofMat = v }), frame: v => mut(h => { h.frame = v }),
+  facadetint: v => mut(h => { h.facadeTint = v === 'natural' ? null : v }),
   addextra: v => addExtra(v), selextra: v => select({ t: 'extra', id: +v }),
   addroom: v => addRoom(v), selroom: v => { const id = +v; if (S.mode === 'interior' || S.mode === 'materials' || S.mode === 'plan') { S.activeRoom = id; S.sel = S.mode === 'plan' ? { t: 'room', id } : (S.sel && S.sel.t === 'furn' ? null : S.sel); if (S.mode === 'plan') S.sel = { t: 'room', id }; if (S.mode === 'interior' && sc && (S.iview === 'room' || S.iview === 'inside')) applyIview(); validateSel(); syncScene(); renderPanels() } else select({ t: 'room', id }) },
   preset: v => applyPreset(v), furncat: v => { S.furnCat = v; renderPanels('left') }, addfurn: v => addFurn(v),
@@ -636,9 +652,9 @@ export const studio = {
   get isOpen() { return !!store && !$('#view-config').hidden },
   async open(o = {}) {
     document.body.classList.add('studio-on'); await ensure();
-    if (o.model) {
+    if (o.model || o.ready || o.readyConfig) {
       if (S.loaded && store.rev > 0 && !S.readOnly && !(await ask('В конструкторе есть несохранённые правки. Открыть выбранную модель вместо них? Текущий вариант сохранён в черновике на этом устройстве.', { ok: 'Открыть модель', title: 'Заменить текущий проект?' }))) { /* остаёмся */ }
-      else { saveDraftNow(); startModel(o.model) }
+      else { saveDraftNow(); if (o.readyConfig) { const r = startReadyConfig(o.readyConfig.config, o.readyConfig.base); if (r.notes.length) note(r.notes.join(' '), 'warn') } else if (o.ready) startReady(o.ready); else startModel(o.model) }
     } else if (!S.loaded) {
       const d = readDraft();
       if (d && await ask(`Найден черновик проекта${d.title ? ' «' + d.title + '»' : ''} от ${new Date(d.t).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}. Продолжить с ним?`, { ok: 'Продолжить', cancel: 'Начать заново', title: 'Черновик на этом устройстве' })) {
@@ -661,6 +677,8 @@ export const studio = {
     return { notes };
   },
   serialize: () => L.serializeProject(store ? store.house : L.emptyHouse()),
+  /* Текущий дом для сохранения в готовые дома: конфиг в формате проекта (v:2) и базовая модель */
+  readyDraft: () => ({ config: L.serializeProject(store ? store.house : L.emptyHouse()), base: S.meta.model || 'proj', rooms: store ? store.house.rooms.length : 0 }),
   info() { const h = store.house, n = projectNumbers(h); return { rooms: h.rooms.length, area: n.area, price: n.calc.modules } },
   price: () => projectNumbers(store.house).calc.modules,
   hasRooms: () => !!store && store.house.rooms.length > 0,
