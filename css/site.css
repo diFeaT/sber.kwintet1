@@ -1,6 +1,6 @@
 /* ============ Страницы сайта: шапка, главная, каталог, кабинеты, панель команды ============ */
 .site-h { position: sticky; top: 0; z-index: 60; background: rgba(var(--linen-rgb), .94); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); padding-top: env(safe-area-inset-top, 0) }
-.bar { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-height: var(--hdr); max-width: 1320px; margin: 0 auto; padding: 0 24px }
+.bar { display: flex; align-items: center; justify-content: flex-start; gap: 12px; min-height: var(--hdr); max-width: none; margin: 0; padding: 0 clamp(16px, 2vw, 28px) }
 .logo { display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; color: var(--forest); cursor: pointer; padding: 4px 0; font: 600 1.55rem/1 var(--font-d); letter-spacing: -.01em; min-height: 44px }
 .logo svg { flex: none }
 #mainNav { display: flex; gap: 2px; flex-wrap: nowrap; white-space: nowrap; align-items: center; justify-content: flex-end; min-width: 0; margin-left: auto }
