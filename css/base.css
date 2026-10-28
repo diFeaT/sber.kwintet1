@@ -1,0 +1,216 @@
+/* ============ Дизайн-система «Лиственница»: Nature-Tech / Scandinavian / Premium Modular Living ============
+   Единые переменные для всех страниц. Светлая тема: прежняя автоматическая тёмная тема заменена
+   одной светлой, чтобы все экраны (включая конструктор и кабинеты) оставались читаемыми и одинаковыми. */
+:root {
+  color-scheme: light;
+  /* палитра */
+  --linen: #F3F0E8;        /* льняной: фон страниц */
+  --surface: #FAF9F5;      /* светлая поверхность: карточки, панели */
+  --sand: #D5C5A5;         /* песочный */
+  --oak: #A87850;          /* натуральный дуб: акцент действия */
+  --moss: #69765B;         /* приглушённый мох: вторичный акцент, «успех» */
+  --forest: #38473A;       /* глубокий лесной зелёный: основные кнопки, заголовки */
+  --graphite: #343C35;     /* графит: основной текст */
+  --muted: #77786F;        /* вторичный текст (крупный/декоративный) */
+  --muted-ink: #62635B;    /* вторичный текст для мелких размеров: контраст ≥ 5:1 на льняном */
+  --line: #DDD6C6;         /* тёплые серо-бежевые границы */
+  --line-2: #C9C0AB;
+  --sand-soft: #ECE5D4;
+  --oak-soft: #EFE3D6;
+  --moss-soft: #E4E8DC;
+  --err: #A4533C;          /* сдержанный терракотовый */
+  --err-soft: #F3E3DC;
+  --ok: #55664A;
+  --warn: #8A6A2E;
+  --warn-soft: #F2E8CF;
+  --ring: rgba(168, 120, 80, .45);
+  --on-forest: #FAF9F5;    /* текст на лесном зелёном фоне */
+  --on-forest-rgb: 250, 249, 245;
+  --forest-hover: #2d3a2f;
+  --field: #ffffff;        /* поля ввода и карточки-варианты */
+  --surface-rgb: 250, 249, 245;
+  --linen-rgb: 243, 240, 232;
+  --stage: #E4DFD1;        /* фон 3D-сцены */
+  --stage-rgb: 228, 223, 209;
+  --err-ink: #7c3a28;      /* текст на терракотовом фоне */
+  --ok-ink: #3e4a35;
+  --warn-ink: #5e4a1c;
+  /* алиасы прежних имён */
+  --bg: var(--linen); --ink: var(--graphite); --pine: var(--forest); --pine-ink: #FAF9F5; --larch: var(--oak);
+  /* размеры */
+  --r-s: 8px; --r-m: 12px; --r-l: 18px; --r-xl: 26px;
+  --sh-1: 0 1px 2px rgba(52, 60, 53, .06), 0 2px 8px rgba(52, 60, 53, .05);
+  --sh-2: 0 10px 30px rgba(52, 60, 53, .12);
+  --font: Onest, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-d: "Cormorant Garamond", "Playfair Display", Georgia, "Times New Roman", serif;
+  --hdr: 60px;
+}
+/* Тёмная тема: включается переключателем (data-theme="dark") или системной настройкой, если пользователь не выбрал явно */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --linen: #141a16; --surface: #1d2420; --sand: #5b4f3a; --oak: #c9996a; --moss: #97a68a; --forest: #cfdcc9;
+  --graphite: #e6ebe3; --muted: #97998f; --muted-ink: #aeb3a8; --line: #2f3a33; --line-2: #435046;
+  --sand-soft: #26302a; --oak-soft: #3a2e24; --moss-soft: #27332b;
+  --err: #d98a72; --err-soft: #3a2822; --ok: #a9bd98; --warn: #d7b26f; --warn-soft: #3a3121;
+  --ring: rgba(201, 153, 106, .5);
+  --on-forest: #141a16; --on-forest-rgb: 20, 26, 22; --forest-hover: #e3ecdd;
+  --field: #1a211d; --surface-rgb: 29, 36, 32; --linen-rgb: 20, 26, 22;
+  --stage: #1a211d; --stage-rgb: 26, 33, 29;
+  --err-ink: #f3d2c6; --ok-ink: #dbe8d2; --warn-ink: #f1dfb6;
+  --sh-1: 0 1px 2px rgba(0, 0, 0, .3), 0 2px 8px rgba(0, 0, 0, .25);
+  --sh-2: 0 10px 30px rgba(0, 0, 0, .45);
+}
+
+*, *::before, *::after { box-sizing: border-box }
+html { scroll-padding-top: calc(var(--hdr) + 12px); scroll-behavior: smooth; -webkit-text-size-adjust: 100% }
+body { margin: 0; background: var(--linen); color: var(--graphite); font: 400 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility }
+body.studio-on { overflow: hidden }
+img, svg, canvas { max-width: 100% }
+[hidden] { display: none !important }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+.skip { position: absolute; left: 12px; top: -60px; z-index: 200; background: var(--forest); color: var(--on-forest); padding: 10px 16px; border-radius: var(--r-s); transition: top .15s }
+.skip:focus { top: 8px }
+
+h1, h2, h3, h4 { margin: 0 0 .5em; line-height: 1.15; color: var(--forest) }
+h1, h2 { font-family: var(--font-d); font-weight: 600; letter-spacing: -.012em }
+h1 { font-size: clamp(2.6rem, 6.4vw, 4.9rem); line-height: 1.02 }
+h2 { font-size: clamp(2rem, 4.4vw, 3.1rem) }
+h3 { font-size: 1.15rem; font-weight: 650; letter-spacing: -.005em }
+h1 em { font-style: italic; color: var(--oak) }
+p { margin: 0 0 1em; max-width: 66ch }
+a { color: var(--forest); text-underline-offset: 3px; text-decoration-thickness: 1px }
+a:hover { color: var(--oak) }
+small { font-size: .85em }
+.eyebrow { margin: 0 0 .7em; font: 600 .78rem/1 var(--font); letter-spacing: .14em; text-transform: uppercase; color: var(--oak) }
+.who { color: var(--muted-ink); font-size: .95rem; margin: 0 0 .6em }
+.lbl { font: 600 .78rem/1.2 var(--font); letter-spacing: .06em; text-transform: uppercase; color: var(--muted-ink); margin: 14px 0 6px }
+.demo-note { font-size: .85rem; color: var(--muted-ink); margin: 18px 0 0; padding-left: 12px; border-left: 2px solid var(--sand) }
+.demo-note.inline { margin-top: 0 }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px }
+.wrap.narrow { max-width: 820px }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center }
+.row.end { justify-content: flex-end }
+.mt { margin-top: 18px }
+.num, .tbl .n { font-variant-numeric: tabular-nums }
+
+/* ---------- фокус ---------- */
+button:focus-visible, summary:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--forest); outline-offset: 2px; box-shadow: 0 0 0 5px var(--ring)
+}
+
+/* ---------- кнопки ---------- */
+button { font: inherit; color: inherit }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 22px; border-radius: 999px;
+  background: var(--surface); color: var(--forest); border: 1.5px solid var(--forest); font: 600 .98rem/1.2 var(--font); cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s, transform .18s, box-shadow .18s
+}
+.btn:hover { background: var(--moss-soft) }
+.btn:active { transform: translateY(1px) }
+.btn.primary { background: var(--forest); color: var(--on-forest); border-color: var(--forest) }
+.btn.primary:hover { background: var(--forest-hover); border-color: var(--forest-hover); box-shadow: var(--sh-1) }
+.btn.ghost { background: transparent }
+.btn.ghost:hover { background: rgba(105, 118, 91, .13) }
+.btn.lg { min-height: 52px; padding: 13px 30px; font-size: 1.05rem }
+.btn.block { width: 100% }
+.btn.danger, .chip.danger, .b.danger { color: var(--err); border-color: var(--err) }
+.btn.danger:hover { background: var(--err-soft) }
+.btn:disabled, .chip:disabled, .b:disabled { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none }
+.btn.loading { position: relative; color: transparent !important; pointer-events: none }
+.btn.loading::after, .spin { content: ""; position: absolute; width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(var(--on-forest-rgb), .4); border-top-color: var(--on-forest); animation: spin .7s linear infinite }
+.btn.ghost.loading::after { border-color: rgba(56, 71, 58, .3); border-top-color: var(--forest) }
+.spin { position: static; border-color: var(--line-2); border-top-color: var(--forest) }
+@keyframes spin { to { transform: rotate(360deg) } }
+.linkb { background: none; border: 0; color: var(--muted-ink); text-align: left; padding: 6px 0; font: inherit; cursor: pointer; text-decoration: underline; min-height: 36px }
+.linkb:hover { color: var(--oak) }
+
+/* ---------- чипы, вкладки ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 16px; background: var(--surface); color: var(--graphite);
+  border: 1.5px solid var(--line); border-radius: 999px; font: 500 .95rem/1.2 var(--font); cursor: pointer; text-align: left;
+  transition: background .15s, border-color .15s, color .15s
+}
+.chip:hover { border-color: var(--moss); background: var(--moss-soft) }
+.chip[aria-pressed="true"] { background: var(--forest); border-color: var(--forest); color: var(--on-forest); font-weight: 600 }
+.chip small { display: block; color: var(--muted-ink); font-weight: 400; font-size: .76rem; margin-left: 2px }
+.chip[aria-pressed="true"] small { color: rgba(var(--on-forest-rgb), .78) }
+.chip.sm { min-height: 34px; padding: 5px 12px; font-size: .86rem }
+.chip .dot, .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(0, 0, 0, .25); vertical-align: -1px; margin-right: 2px }
+.opt, .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px }
+.tabs { margin: 18px 0 22px }
+
+/* ---------- формы ---------- */
+input, textarea, select {
+  font: inherit; width: 100%; min-height: 44px; background: var(--field); color: var(--graphite); border: 1.5px solid var(--line-2); border-radius: var(--r-m); padding: 10px 14px;
+  transition: border-color .15s, box-shadow .15s
+}
+select { appearance: none; padding-right: 38px; background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='m1 1.5 5 5 5-5' fill='none' stroke='%23819080' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 14px center }
+input::placeholder, textarea::placeholder { color: var(--muted) }
+input:hover, textarea:hover, select:hover { border-color: var(--moss) }
+input:focus, textarea:focus, select:focus { border-color: var(--forest) }
+input:disabled, select:disabled, textarea:disabled { background: var(--sand-soft); color: var(--muted-ink); cursor: not-allowed }
+input[aria-invalid="true"] { border-color: var(--err); background: var(--err-soft) }
+input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; min-height: 0; accent-color: var(--forest); padding: 0; flex: none }
+input[type="range"] { padding: 0; min-height: 32px; accent-color: var(--forest); border: 0; background: transparent }
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0 }
+.form { display: grid; gap: 12px; max-width: 520px }
+.card.form { max-width: none }
+.fld { display: grid; gap: 6px; font-weight: 500; font-size: .92rem; color: var(--graphite) }
+.fld small { color: var(--muted-ink); font-weight: 400 }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: .92rem; color: var(--muted-ink); cursor: pointer }
+.check input { margin-top: 2px }
+.ok { display: none; background: var(--moss-soft); color: var(--graphite); border-left: 4px solid var(--moss); padding: 12px 14px; border-radius: var(--r-s); font-size: .95rem; margin-top: 10px }
+.send { display: flex; gap: 10px; align-items: center }
+.send input { flex: 1; min-width: 0 }
+.send.wrap-f { flex-wrap: wrap; margin-top: 12px }
+.stepper { display: flex; gap: 6px; align-items: center }
+.stepper input { text-align: center; min-width: 0 }
+
+/* ---------- карточки, таблицы, бейджи ---------- */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); padding: 22px; box-shadow: var(--sh-1) }
+.card h3:first-child { margin-top: 0 }
+.card + .card { margin-top: 12px }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px }
+.tw { overflow-x: auto; margin-bottom: 14px }
+.tbl { width: 100%; border-collapse: collapse; font-size: .94rem }
+.tbl th, .tbl td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top }
+.tbl th { font-weight: 600; color: var(--forest) }
+.tbl .n { text-align: right; white-space: nowrap }
+.tbl tr.tot td { border-top: 2px solid var(--forest); border-bottom: 0; padding-top: 12px }
+.badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: .8rem; font-weight: 600; color: var(--graphite); border: 1px solid var(--line-2); background: var(--surface) }
+.b-submitted { background: var(--sand-soft); border-color: var(--sand) }
+.b-revision { background: var(--err-soft); border-color: var(--err); color: var(--err-ink) }
+.b-approved { background: var(--moss-soft); border-color: var(--moss); color: var(--ok-ink) }
+.b-paid { background: var(--forest); border-color: var(--forest); color: var(--on-forest) }
+.b-archived { background: var(--surface); border-style: dashed; border-color: var(--muted-ink); color: var(--muted-ink) }
+.empty { display: grid; justify-items: start; gap: 6px; padding: 18px; border: 1.5px dashed var(--line-2); border-radius: var(--r-m); background: rgba(var(--surface-rgb), .6); color: var(--muted-ink) }
+.empty b { color: var(--forest); font-size: 1rem }
+.empty svg { color: var(--moss); width: 26px; height: 26px }
+.empty.wide { grid-column: 1/-1 }
+
+/* ---------- чат ---------- */
+.chat { display: flex; flex-direction: column; gap: 10px; height: 360px; overflow-y: auto; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); margin-bottom: 12px }
+.msg { max-width: 82%; padding: 10px 14px; border-radius: 16px; white-space: pre-line; font-size: .96rem }
+.msg.me { align-self: flex-end; background: var(--forest); color: var(--on-forest); border-bottom-right-radius: 4px }
+.msg.them { align-self: flex-start; background: var(--sand-soft); border-bottom-left-radius: 4px }
+
+/* ---------- окна ---------- */
+.modal { position: fixed; inset: 0; z-index: 80; background: rgba(20, 26, 22, .55); display: flex; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(2px) }
+.mbox { position: relative; background: var(--surface); color: var(--graphite); border-radius: var(--r-xl); padding: 28px; width: 100%; max-width: 460px; max-height: 92vh; overflow: auto; box-shadow: var(--sh-2); border: 1px solid var(--line) }
+.mbox.wide { max-width: 820px }
+.mbox.sm { max-width: 420px }
+.mbox h2 { font-size: 1.9rem; margin-right: 36px }
+.mbox .x { position: absolute; top: 10px; right: 10px; width: 44px; height: 44px; border-radius: 50%; background: none; border: 0; font-size: 1.7rem; line-height: 1; color: var(--muted-ink); cursor: pointer }
+.mbox .x:hover { background: var(--sand-soft); color: var(--forest) }
+.mbox .opt { margin-bottom: 14px }
+#gToast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--forest); color: var(--on-forest); padding: 12px 20px; border-radius: 999px; z-index: 120; opacity: 0; max-width: 92vw; pointer-events: none; transition: opacity .25s, transform .25s; box-shadow: var(--sh-2); font-size: .95rem }
+#gToast.on { opacity: 1; transform: translate(-50%, 0) }
+#gToast[data-kind="ok"] { background: var(--moss) }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important }
+}
+@media print {
+  .site-h, #gToast, .row, .modal, #calcBack, .skip { display: none !important }
+  body { background: #fff; color: #000 }
+}
