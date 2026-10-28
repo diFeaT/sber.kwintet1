@@ -354,8 +354,14 @@ function setPanel(open) {
   body.classList.toggle('panel-off', !open);
   if (t) { t.setAttribute('aria-expanded', String(open)); t.querySelector('span').textContent = open ? 'Скрыть панель' : 'Показать панель' }
 }
+/* Полоса режимов (Экстерьер / Планировка / Интерьер…) тоже скрывается на телефоне; сцена занимает освободившееся место */
+function setModes(open) {
+  const body = $('#stuBody'), t = $('#stuModesT'); if (!body) return;
+  body.classList.toggle('modes-off', !open);
+  if (t) { t.setAttribute('aria-expanded', String(open)); t.querySelector('span').textContent = open ? 'Скрыть вид' : 'Показать вид' }
+}
 const ACT = {
-  mode: v => setMode(v), panel: () => setPanel($('#stuBody').classList.contains('panel-off')), tab: v => { S.tab = v; setPanel(true); $('#stuBody').dataset.tab = v; $$('#stuTabs [data-v]').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v)); sc && sc.resize() },
+  mode: v => setMode(v), panel: () => setPanel($('#stuBody').classList.contains('panel-off')), modes: () => setModes($('#stuBody').classList.contains('modes-off')), tab: v => { S.tab = v; setPanel(true); $('#stuBody').dataset.tab = v; $$('#stuTabs [data-v]').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === v)); sc && sc.resize() },
   facade: v => { const f = facadeById(v); mut(h => { h.facade = v; h.wall = f.priceClass }); },
   roofshow: () => mut(h => { h.roof = !h.roof }), rooftype: v => mut(h => { h.roofType = v }), roofmat: v => mut(h => { h.roofMat = v }), frame: v => mut(h => { h.frame = v }),
   facadetint: v => mut(h => { h.facadeTint = v === 'natural' ? null : v }),

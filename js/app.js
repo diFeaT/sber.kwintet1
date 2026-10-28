@@ -266,11 +266,12 @@ import { chatForProject, generalChat } from './chats.js';
     function renderProfile(){if(!PROF){go('home');openAuth();return}
      if(recovery)PTAB='profile';
      [...$('#profTabs').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.pt===PTAB));
-     ['profile','projects','bookings'].forEach(t=>$('#pt-'+t).hidden=t!==PTAB);
+     ['profile','projects','sub','bookings'].forEach(t=>$('#pt-'+t).hidden=t!==PTAB);
      if(PTAB==='profile'){$('#pName').value=PROF.full_name;$('#pUser').value=PROF.username;$('#pMail').value=PROF.email;$('#pOld').value='';$('#pNew').value='';
       $('#pOld').closest('label').hidden=recovery;$('#pMail').placeholder=PROF.email?'':'Добавьте почту: по ней можно восстановить пароль';
       pmsg(recovery?'Введите новый пароль и нажмите «Сохранить».':(PROF.full_name==='Клиент'?'Укажите имя и фамилию: так вас увидит дизайнер.':''));renderPhoneCard()}
      if(PTAB==='projects')loadMyProjects();
+     if(PTAB==='sub'){showMsg('#promoMsg','');loadSubscription()}
      if(PTAB==='bookings')initBookings()}
     $('#profTabs').addEventListener('click',e=>{const b=e.target.closest('[data-pt]');if(b){PTAB=b.dataset.pt;renderProfile()}});
     $('#pForm').addEventListener('submit',async e=>{e.preventDefault();if(!sb||!PROF)return;
@@ -328,6 +329,24 @@ import { chatForProject, generalChat } from './chats.js';
      if(cfg.PAYMENT_URL){location.href=cfg.PAYMENT_URL+(cfg.PAYMENT_URL.includes('?')?'&':'?')+'project='+encodeURIComponent(p.id)+'&amount='+p.calc.total;return}
      gtoast('Оплата пока не подключена. Менеджер пришлёт реквизиты в чате.')}
     $('#payBtn').onclick=()=>{if(CALCP)goToPayment(CALCP)};
+    /* подписка и промокод */
+    async function loadSubscription(){
+     if(!sb||!PROF)return;
+     const{data,error}=await sb.rpc('my_subscription');
+     const row=Array.isArray(data)?data[0]:data;
+     if(error||!row){$('#subSummary').textContent='Не удалось загрузить подписку. Проверьте соединение.';return}
+     $('#subSummary').textContent=row.active?`Подписка активна до ${fmtD(row.paid_until)}.`:'Подписки нет. Доступен только пробный проект.';
+    }
+    $('#promoForm').addEventListener('submit',async e=>{e.preventDefault();if(!sb||!PROF)return;
+     const code=$('#promoCode').value.trim();
+     if(!code)return showMsg('#promoMsg','Введите промокод.');
+     $('#promoGo').disabled=true;
+     const{data,error}=await sb.rpc('redeem_promo',{p_code:code});
+     $('#promoGo').disabled=false;
+     if(error)return showMsg('#promoMsg',error.message);
+     $('#promoCode').value='';showMsg('#promoMsg','Промокод активирован.');
+     $('#subSummary').textContent=`Подписка активна до ${fmtD(data)}.`;
+    });
     
     /* отправка проекта на согласование */
     let submitFrom='config';
@@ -439,7 +458,7 @@ import { chatForProject, generalChat } from './chats.js';
     let STAB='plans';
     async function renderStaff(){if(!sb||!isStaff()){go('home');return}
      // что видит каждая роль: владелец всё, дизайнер планировки, обращения и записи, менеджер только обращения
-     const allowed=PROF.role==='owner'?['projects','plans','leads','bookings','team']:PROF.role==='manager'?['projects','leads']:['plans','leads','bookings'];
+     const allowed=PROF.role==='owner'?['projects','plans','leads','bookings','team','promo']:PROF.role==='manager'?['projects','leads']:['plans','leads','bookings'];
      [...$('#stTabs').children].forEach(b=>{b.hidden=!allowed.includes(b.dataset.st)});
      if(!allowed.includes(STAB))STAB=allowed[0];
      $('#stRole').textContent='Ваша роль: '+(ROLE_RU[PROF.role]||PROF.role)+'.';
@@ -453,10 +472,10 @@ import { chatForProject, generalChat } from './chats.js';
       .on('postgres_changes',{event:'*',schema:'public',table:'bookings'},later).subscribe();
      staffTab(STAB)}
     function staffTab(t){STAB=t;[...$('#stTabs').children].forEach(b=>b.setAttribute('aria-pressed',b.dataset.st===t));
-     ['projects','plans','leads','bookings','team'].forEach(x=>$('#st-'+x).hidden=x!==t);refreshStaff()}
+     ['projects','plans','leads','bookings','team','promo'].forEach(x=>$('#st-'+x).hidden=x!==t);refreshStaff()}
     $('#stTabs').addEventListener('click',e=>{const b=e.target.closest('[data-st]');if(b)staffTab(b.dataset.st)});
     async function refreshStaff(){if(!sb||!isStaff())return;refreshBadges();
-     if(STAB==='projects')await refreshProjectsTab();else if(STAB==='plans')await refreshPlans();else if(STAB==='leads')await refreshLeads();else if(STAB==='team')await refreshTeam();else await refreshBookings()}
+     if(STAB==='projects')await refreshProjectsTab();else if(STAB==='plans')await refreshPlans();else if(STAB==='leads')await refreshLeads();else if(STAB==='team')await refreshTeam();else if(STAB==='promo')await refreshPromo();else await refreshBookings()}
     async function refreshBadges(){
      const cnt=async(t,f)=>{const{count}=await f(sb.from(t).select('id',{count:'exact',head:true}));return count||0};
      const mgr=PROF&&PROF.role==='manager'; // менеджеру проекты и записи не показываются
@@ -543,6 +562,59 @@ import { chatForProject, generalChat } from './chats.js';
     $('#teamList').addEventListener('change',async e=>{const sel=e.target.closest('[data-role-for]');if(!sel)return;
      const{error}=await sb.rpc('set_role',{target:sel.dataset.roleFor,new_role:sel.value});
      gtoast(error?'Ошибка: '+error.message:(sel.value==='client'?'Роль снята':'Роль изменена'));refreshStaff()});
+    /* промокоды (владелец): список, история использования, создание, вкл/выкл */
+    async function refreshPromo(){
+     if(!sb||PROF.role!=='owner')return;
+     const box=$('#promoList');box.innerHTML='<p class="who">Загрузка…</p>';
+     const{data,error}=await sb.rpc('promo_list');
+     if(error){box.innerHTML='<p class="who">Не удалось загрузить промокоды: '+esc(error.message)+'</p>';return}
+     const rows=data||[];
+     box.innerHTML=rows.length?rows.map(p=>{
+      const lim=p.max_uses?p.used_count+' из '+p.max_uses:p.used_count+' (без лимита)';
+      const exp=p.expires_at?' · до '+fmtD(p.expires_at):'';
+      return `<div class="send" style="margin-bottom:6px;align-items:center;flex-wrap:wrap" data-promo="${esc(p.code)}"><span style="flex:1"><b>${esc(p.code)}</b> · ${p.months} мес. · использовано ${esc(lim)}${exp}${p.active?'':' · <span class="who">выключен</span>'}</span><button class="btn ghost" type="button" data-pact="hist">История</button><button class="btn ghost" type="button" data-pact="toggle" data-on="${p.active?1:0}">${p.active?'Выключить':'Включить'}</button><button class="btn ghost danger" type="button" data-pact="del">Удалить</button></div>`}).join('')
+      :'<p class="who">Промокодов пока нет.</p>';
+    }
+    $('#promoList').addEventListener('click',async e=>{const b=e.target.closest('[data-pact]');if(!b)return;
+     const code=b.closest('[data-promo]').dataset.promo;
+     if(b.dataset.pact==='hist'){
+      const{data,error}=await sb.rpc('promo_history',{p_code:code});
+      const h=$('#promoHist');h.hidden=false;
+      if(error){h.innerHTML='<p class="who">Не удалось загрузить историю: '+esc(error.message)+'</p>';return}
+      h.innerHTML=`<h3>История: ${esc(code)}</h3>`+((data||[]).length?'<ul style="margin:0;padding-left:18px">'+data.map(r=>`<li>${esc(r.full_name)} <span class="who">@${esc(r.username)}</span> · ${esc(fmtDT(r.redeemed_at))}</li>`).join('')+'</ul>':'<p class="who" style="margin:0">Промокод ещё никто не использовал.</p>');
+      return;
+     }
+     if(b.dataset.pact==='toggle'){
+      const wasActive=b.dataset.on==='1';
+      const{error}=await sb.rpc('promo_set_active',{p_code:code,p_active:!wasActive});
+      if(error)return gtoast('Ошибка: '+error.message);
+      gtoast(wasActive?'Промокод выключен':'Промокод включён');refreshPromo();
+     }
+    });
+    /* удаление промокода (владелец): история удаляется вместе с кодом */
+    $('#promoList').addEventListener('click',async e=>{const b=e.target.closest('[data-pact="del"]');if(!b)return;
+     const code=b.closest('[data-promo]').dataset.promo;
+     if(!(await ask('Удалить промокод «'+code+'»? Его история использования тоже будет удалена. Если нужно только закрыть доступ, лучше выключить промокод.',{ok:'Удалить',danger:true,title:'Удалить промокод'})))return;
+     const{error}=await sb.rpc('promo_delete',{p_code:code});
+     if(error)return gtoast('Ошибка: '+error.message);
+     const h=$('#promoHist');h.hidden=true;h.innerHTML='';
+     gtoast('Промокод удалён');refreshPromo();
+    });
+    $('#promoAdd').addEventListener('submit',async e=>{e.preventDefault();if(!sb)return;
+     const code=$('#pcCode').value.trim();
+     const months=parseInt($('#pcMonths').value,10),mx=$('#pcMax').value,exp=$('#pcExp').value;
+     if(!code)return showMsg('#pcMsg','Введите код.');
+     if(!(months>=1&&months<=36))return showMsg('#pcMsg','Срок: от 1 до 36 месяцев.');
+     const max=mx?parseInt(mx,10):null;
+     if(mx&&!(max>=1))return showMsg('#pcMsg','Лимит должен быть не меньше 1.');
+     const expIso=exp?new Date(exp+'T23:59:59').toISOString():null;
+     $('#pcGo').disabled=true;
+     const{data,error}=await sb.rpc('promo_create',{p_code:code,p_months:months,p_max_uses:max,p_expires_at:expIso});
+     $('#pcGo').disabled=false;
+     if(error)return showMsg('#pcMsg',error.message);
+     showMsg('#pcMsg','');$('#pcCode').value='';$('#pcMax').value='';$('#pcExp').value='';$('#pcMonths').value='1';
+     gtoast('Промокод '+data+' создан','ok');refreshPromo();
+    });
     // назначение дизайнера: владелец и менеджер назначают любого дизайнера; дизайнер берёт свободный проект или снимает себя
     function renderAssign(c){const box=$('#stAssign');const r=PROF.role;box.hidden=!c;if(box.hidden)return;
      const canAny=r==='owner'||r==='manager',free=!c.designer_id,mine=c.designer_id===PROF.id;
