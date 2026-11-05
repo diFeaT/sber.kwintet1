@@ -16,6 +16,8 @@
 <link rel="stylesheet" href="css/studio.css">
 </head>
 <body data-view="home">
+<img class="bg-branches bg-branches--left" src="uploads/fir-branches-border.png" alt="" aria-hidden="true">
+<img class="bg-branches bg-branches--right" src="uploads/fir-branches-border.png" alt="" aria-hidden="true">
 <a class="skip" href="#main">К содержимому</a>
 <header class="site-h">
     <div class="bar">
@@ -31,7 +33,7 @@
             <button data-go="home" data-anchor="contact">Контакты</button>
             <button data-go="config" class="nav-cta">Конструктор</button>
             <button data-go="ready">Готовые дома</button>
-            <button data-go="business">Предпринимателям</button>
+            <button data-go="business" class="nav-biz"><svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>Предпринимателям</button>
             <button id="authBtn" class="nav-auth">Войти</button>
             <button id="outBtn" hidden>Выйти</button>
             <button id="staffBtn" class="nav-staff" hidden>Панель</button>
@@ -47,7 +49,7 @@
                 <div class="hero-copy">
                     <p class="eyebrow">Модульные дома под ключ</p>
                     <h1>Дом, который вы <em>собираете сами</em></h1>
-                    <p class="hero-sub">Соберите модульный дом в 3D-конструкторе и сразу увидьте площадь и предварительную цену.</p>
+                    <p class="hero-sub">Спроектируйте дом в 3D и зафиксируйте площадь и стоимость до встречи с дизайнером на сайте.</p>
                     <p class="hero-price">Модели от 2,4 млн ₽ <span>· ориентир, точная цена после согласования</span></p>
                     <div class="row">
                         <button class="btn primary lg" data-go="config">Создать свой дом</button>
@@ -68,9 +70,27 @@
         </section>
 
         <section id="for-whom" class="sec">
-            <div class="wrap narrow">
-                <header class="sec-h"><p class="eyebrow">Для кого</p><h2>Для тех, кто владеет свободным участком</h2></header>
-                <p>Если участок уже есть, выберите модель, соберите дом в конструкторе и узнайте предварительную цену до встречи с дизайнером.</p>
+            <div class="wrap for-whom-grid">
+                <img class="for-whom-img" src="uploads/for-whom-house-sketch.png" alt="Пара на зелёном участке изучает чертёж дома, наложенный на пейзаж" loading="lazy">
+                <div class="for-whom-copy">
+                    <header class="sec-h feature-h"><p class="eyebrow">Для кого</p><h2>Для тех, кто владеет свободным участком</h2></header>
+                    <p class="feature-lead">Если участок уже есть, выберите модель, соберите дом в конструкторе и узнайте предварительную цену до встречи с дизайнером.</p>
+                    <p>Мы строим модульные дома из сухого строганого бруса камерной сушки, с огнебиозащитой и утеплением. Каркас собирается на заводе, поэтому на участке не нужно ждать погоду и месяцами держать стройку открытой.</p>
+                    <p>Вы сами выбираете планировку, фасад, кровлю и отделку. Итоговая стоимость фиксируется в договоре, а дизайнер до подписания покажет планировку и визуализацию.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="process" class="sec">
+            <div class="wrap">
+                <header class="sec-h"><p class="eyebrow">Как это работает</p><h2>Процесс проектирования</h2></header>
+                <ol class="steps2">
+                    <li><b>Соберите дом</b><span>В 3D-конструкторе выберите модель, фасад, кровлю, комнаты и мебель.</span></li>
+                    <li><b>Отправьте дизайнеру</b><span>Нажмите «Отправить дизайнеру»: проект уйдёт на согласование.</span></li>
+                    <li><b>Обсудите в чате</b><span>Дизайнер пришлёт планировку и визуализацию, правки вносим бесплатно.</span></li>
+                    <li><b>Согласуйте расчёт</b><span>После согласования вы увидите подтверждённую стоимость с фундаментом и мебелью.</span></li>
+                    <li><b>Оплатите и стройте</b><span>Реквизиты менеджер пришлёт в чате; итоговая сумма фиксируется в договоре.</span></li>
+                </ol>
             </div>
         </section>
 
@@ -107,6 +127,32 @@
             </div>
         </section>
 
+        <section id="materials" class="sec alt">
+            <div class="wrap">
+                <header class="sec-h"><p class="eyebrow">Отделка</p><h2>Материалы и фактуры</h2>
+                    <p>В конструкторе материалы применяются к реальным поверхностям: фасаду, полу, стенам комнат, кровле и мебели.</p></header>
+                <div class="msw-grid" id="matShow"></div>
+                <p class="demo-note">Образцы нарисованы процедурно прямо в браузере и показывают характер материала, а не точный цвет партии.</p>
+            </div>
+        </section>
+
+        <section class="sec modes-sec">
+            <div class="wrap">
+                <header class="sec-h"><p class="eyebrow">Конструктор</p><h2>Пять режимов работы</h2></header>
+                <div class="modes-layout">
+                    <img class="modes-img" src="uploads/modes-configurator-preview.png" alt="Трёхмерная модель дома с тёмной облицовкой в конструкторе" loading="lazy">
+                <div class="modes-show">
+                    <div><b>Экстерьер</b><span>Фасады, кровля, окна и двери, ступени и навес.</span></div>
+                    <div><b>Планировка</b><span>Комнаты, размеры, поворот, площадь, общие стены.</span></div>
+                    <div><b>Интерьер</b><span>Мебель по комнатам, отделка пола и стен, вид изнутри.</span></div>
+                    <div><b>Материалы</b><span>Библиотека образцов и сравнение материалов.</span></div>
+                    <div><b>Обзор</b><span>Дом в окружении, свет и тени, снимок PNG.</span></div>
+                </div>
+                </div>
+                <button class="btn primary lg" data-go="config">Открыть конструктор</button>
+            </div>
+        </section>
+
         <section id="why" class="sec alt">
             <div class="wrap">
                 <header class="sec-h"><p class="eyebrow">Преимущества</p><h2>Почему покупают у нас</h2></header>
@@ -119,42 +165,6 @@
             </div>
         </section>
 
-        <section id="process" class="sec">
-            <div class="wrap">
-                <header class="sec-h"><p class="eyebrow">Как это работает</p><h2>Процесс проектирования</h2></header>
-                <ol class="steps2">
-                    <li><b>Соберите дом</b><span>В 3D-конструкторе выберите модель, фасад, кровлю, комнаты и мебель.</span></li>
-                    <li><b>Отправьте дизайнеру</b><span>Нажмите «Отправить дизайнеру»: проект уйдёт на согласование.</span></li>
-                    <li><b>Обсудите в чате</b><span>Дизайнер пришлёт планировку и визуализацию, правки вносим бесплатно.</span></li>
-                    <li><b>Согласуйте расчёт</b><span>После согласования вы увидите подтверждённую стоимость с фундаментом и мебелью.</span></li>
-                    <li><b>Оплатите и стройте</b><span>Реквизиты менеджер пришлёт в чате; итоговая сумма фиксируется в договоре.</span></li>
-                </ol>
-            </div>
-        </section>
-
-        <section id="materials" class="sec alt">
-            <div class="wrap">
-                <header class="sec-h"><p class="eyebrow">Отделка</p><h2>Материалы и фактуры</h2>
-                    <p>В конструкторе материалы применяются к реальным поверхностям: фасаду, полу, стенам комнат, кровле и мебели.</p></header>
-                <div class="msw-grid" id="matShow"></div>
-                <p class="demo-note">Образцы нарисованы процедурно прямо в браузере и показывают характер материала, а не точный цвет партии.</p>
-            </div>
-        </section>
-
-        <section class="sec">
-            <div class="wrap">
-                <header class="sec-h"><p class="eyebrow">Конструктор</p><h2>Пять режимов работы</h2></header>
-                <div class="modes-show">
-                    <div><b>Экстерьер</b><span>Фасады, кровля, окна и двери, ступени и навес.</span></div>
-                    <div><b>Планировка</b><span>Комнаты, размеры, поворот, площадь, общие стены.</span></div>
-                    <div><b>Интерьер</b><span>Мебель по комнатам, отделка пола и стен, вид изнутри.</span></div>
-                    <div><b>Материалы</b><span>Библиотека образцов и сравнение материалов.</span></div>
-                    <div><b>Обзор</b><span>Дом в окружении, свет и тени, снимок PNG.</span></div>
-                </div>
-                <button class="btn primary lg" data-go="config">Открыть конструктор</button>
-            </div>
-        </section>
-
         <section id="reviews" class="sec alt">
             <div class="wrap">
                 <header class="sec-h"><p class="eyebrow">Отзывы</p><h2>Отзывы владельцев</h2></header>
@@ -162,15 +172,18 @@
                     <figure class="card review">
                         <div class="stars" aria-label="Оценка 5 из 5">★★★★★</div>
                         <blockquote><p>«Купили «Озёрный» для семьи с двумя детьми. Заехали через 58 дней после подписания договора. Цена ни разу не изменилась.»</p></blockquote>
-                        <figcaption class="who">Сергей и Наталья, 46 лет, Тверская область</figcaption></figure>
+                        <figcaption class="who">Сергей и Наталья, 46 лет, Тверская область</figcaption>
+                        <img class="review-photo" src="uploads/review-camera-photo.png" alt="Фото к отзыву: чёрно-белый рисунок фотоаппарата" loading="lazy"></figure>
                     <figure class="card review">
                         <div class="stars" aria-label="Оценка 5 из 5">★★★★★</div>
                         <blockquote><p>«Боялась, что каркас не переживёт зиму. Прожили уже две, счета за отопление около 4 000 ₽ в месяц. Очень довольна.»</p></blockquote>
-                        <figcaption class="who">Ирина, 52 года, Подмосковье</figcaption></figure>
+                        <figcaption class="who">Ирина, 52 года, Подмосковье</figcaption>
+                        <img class="review-photo" src="uploads/review-camera-photo.png" alt="Фото к отзыву: чёрно-белый рисунок фотоаппарата" loading="lazy"></figure>
                     <figure class="card review">
                         <div class="stars" aria-label="Оценка 4 из 5">★★★★☆</div>
                         <blockquote><p>«Дизайнер терпеливо переделывала планировку три раза. Единственное пожелание: быстрее отвечать по вечерам.»</p></blockquote>
-                        <figcaption class="who">Андрей, 49 лет, Ленинградская область</figcaption></figure>
+                        <figcaption class="who">Андрей, 49 лет, Ленинградская область</figcaption>
+                        <img class="review-photo" src="uploads/review-camera-photo.png" alt="Фото к отзыву: чёрно-белый рисунок фотоаппарата" loading="lazy"></figure>
                 </div>
             </div>
         </section>
@@ -220,47 +233,82 @@
     <!-- ПРЕДПРИНИМАТЕЛЯМ -->
     <div id="view-business" hidden>
         <section class="hero biz-hero">
-            <div class="wrap narrow">
-                <p class="eyebrow">Для предпринимателей</p>
-                <h1>Конструктор модульных домов на <em>вашем сайте</em></h1>
-                <p class="hero-sub">Встроим наш 3D-конструктор в ваш сайт. Посетитель сам соберёт дом, увидит площадь и предварительную цену, а готовый проект придёт к вам.</p>
-                <div class="row">
-                    <a class="btn primary lg" href="#biz-form">Оставить заявку</a>
-                    <button class="btn ghost lg" data-go="config">Посмотреть конструктор</button>
+            <div class="wrap">
+                <div class="hero-grid">
+                    <div class="hero-copy">
+                        <p class="eyebrow">Для предпринимателей</p>
+                        <h1>Конструктор модульных домов на <em>вашем сайте</em></h1>
+                        <p class="hero-sub">Встроим 3D-конструктор в ВАШ сайт. Клиент сам проектирует дом, считает площадь, цену и отправляет заявку.</p>
+                        <div class="row">
+                            <a class="btn primary lg" href="#biz-form">Оставить заявку</a>
+                            <button class="btn ghost lg" data-go="config">Посмотреть конструктор</button>
+                        </div>
+                    </div>
+                    <img class="biz-photo" src="uploads/business-handshake-houses.png" alt="Рукопожатие партнёров над макетами домов на столе" loading="lazy">
+                </div>
+            </div>
+        </section>
+
+        <section class="sec biz-for-sec">
+            <div class="wrap biz-for">
+                <div class="biz-for-copy">
+                    <header class="sec-h"><p class="eyebrow">Для кого</p><h2>Для строительных компаний со своими проектами и каталогом</h2></header>
+                    <p class="biz-for-lead">Вы хотите улучшить свой сайт и дать клиентам возможность визуализировать ваши дома: собрать проект в 3D, увидеть площадь и цену, отправить заявку с готовым вариантом.</p>
+                </div>
+                <div class="orbit" aria-hidden="true">
+                    <div class="orbit-ring"></div>
+                    <div class="orbit-spin">
+                        <div class="orbit-slot" style="--a:0deg"><img class="orbit-pic" src="uploads/orbit-brochure.png" alt="" loading="lazy"></div>
+                        <div class="orbit-slot" style="--a:72deg"><img class="orbit-pic" src="uploads/orbit-team.png" alt="" loading="lazy"></div>
+                        <div class="orbit-slot" style="--a:144deg"><img class="orbit-pic" src="uploads/orbit-site-works.png" alt="" loading="lazy"></div>
+                        <div class="orbit-slot" style="--a:216deg"><img class="orbit-pic" src="uploads/orbit-drawings.png" alt="" loading="lazy"></div>
+                        <div class="orbit-slot" style="--a:288deg"><img class="orbit-pic" src="uploads/orbit-configurator.png" alt="" loading="lazy"></div>
+                    </div>
+                    <div class="orbit-center">Ваш сайт</div>
                 </div>
             </div>
         </section>
 
         <section class="sec">
-            <div class="wrap">
+            <div class="wrap biz-split">
+                <div class="biz-split-copy">
                 <header class="sec-h"><p class="eyebrow">Что получает ваш сайт</p><h2>Посетитель остаётся дольше и приходит с проектом</h2></header>
                 <div class="grid">
                     <div class="card"><h3>Интерактивный каталог</h3><p>Вместо фотографий — 3D-модель, которую можно повернуть и настроить: фасад, кровлю, комнаты.</p></div>
                     <div class="card"><h3>Понятная цена</h3><p>Площадь и предварительная стоимость считаются по составу дома. Клиент видит цифры до разговора с менеджером.</p></div>
                     <div class="card"><h3>Готовый проект в заявке</h3><p>Клиент отправляет не абстрактный запрос, а собранный дом: состав комнат, площадь и отделку.</p></div>
                 </div>
+                </div>
+                <img class="biz-split-img" src="uploads/site-gets-catalog.png" alt="Раздел каталога с 3D-превью домов, ценами и кнопками «Настроить этот дом»" loading="lazy">
             </div>
         </section>
 
         <section class="sec alt">
             <div class="wrap">
                 <header class="sec-h"><p class="eyebrow">Сотрудничество</p><h2>Как мы работаем</h2></header>
-                <ol class="steps2">
-                    <li><b>Обсуждаем ваш сайт</b><span>Смотрим каталог, аудиторию и то, как сейчас проходят заявки.</span></li>
-                    <li><b>Адаптируем конструктор</b><span>Подключаем конструктор под ваши модели, цены и фирменный стиль.</span></li>
-                    <li><b>Запускаем</b><span>Встраиваем конструктор на ваш сайт и проверяем сценарий клиента.</span></li>
-                    <li><b>Работаем по договору</b><span>Ежемесячная или ежегодная подписка плюс 2 % с каждой продажи, оформленной через ваш сайт.</span></li>
-                </ol>
-                <div class="terms" aria-label="Условия сотрудничества">
-                    <div><b>Что оплачивает юрлицо</b><span>Подписка на установку и обслуживание 3D-конструктора на вашем сайте: ежемесячно или ежегодно (сумма указывается в договоре).</span></div>
-                    <div><b>Процент с продаж</b><span>2 % с каждой продажи дома, оформленной через конструктор на вашем сайте.</span></div>
-                    <div><b>Документ</b><span>Заключается договор на установку конструктора. Условия фиксируются в нём.</span></div>
+                <div class="work-grid">
+                    <ol class="steps2">
+                        <li><b>Обсуждаем ваш сайт</b><span>Смотрим каталог, аудиторию и то, как сейчас проходят заявки.</span></li>
+                        <li><b>Адаптируем конструктор</b><span>Подключаем конструктор под ваши модели, цены и фирменный стиль.</span></li>
+                        <li><b>Запускаем</b><span>Встраиваем конструктор на ваш сайт и проверяем сценарий клиента.</span></li>
+                        <li><b>Работаем по договору</b><span>Ежемесячная или ежегодная подписка плюс 2 % с каждой продажи, оформленной через ваш сайт.</span></li>
+                    </ol>
+                    <div class="terms-col">
+                    <header class="sec-h terms-h"><p class="eyebrow">Условия</p><h2>Оплата и документы</h2></header>
+                    <div class="terms" aria-label="Условия сотрудничества">
+                        <div><b>Что оплачивает юрлицо</b><span>Подписка на установку и обслуживание 3D-конструктора на вашем сайте: ежемесячно или ежегодно (сумма указывается в договоре).</span></div>
+                        <div><b>Процент с продаж</b><span>2 % с каждой продажи дома, оформленной через конструктор на вашем сайте.</span></div>
+                        <div><b>Документ</b><span>Заключается договор на установку конструктора. Условия фиксируются в нём.</span></div>
+                    </div>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section class="sec" id="biz-form">
-            <div class="wrap narrow">
+            <div class="wrap biz-split">
+                <img class="biz-split-img" src="uploads/cooperation-ring.png" alt="Телефон в центре, вокруг него фотографии домов" loading="lazy">
+                <div class="biz-split-copy">
                 <header class="sec-h"><p class="eyebrow">Заявка</p><h2>Обсудить сотрудничество</h2>
                     <p>Оставьте контакты и адрес вашего сайта. Мы свяжемся с вами в рабочее время.</p></header>
                 <form class="lead form" id="bizForm">
@@ -272,6 +320,7 @@
                     <button class="btn primary" type="submit">Отправить заявку</button>
                     <div class="ok" id="bizOk" role="status"></div>
                 </form>
+                </div>
             </div>
         </section>
     </div>
