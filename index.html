@@ -51,13 +51,13 @@
                     <p class="eyebrow">Модульные дома под ключ</p>
                     <h1>Дом, который вы <em>собираете сами</em></h1>
                     <p class="hero-sub">Спроектируйте дом в 3D и зафиксируйте площадь и стоимость до встречи с дизайнером на сайте.</p>
-                    <p class="hero-price">Модели от 2,4 млн ₽ <span>· ориентир, точная цена после согласования</span></p>
+                    <p class="hero-price">Модели от 3,82 млн ₽ <span>· ориентир, точная цена после согласования</span></p>
                     <div class="row">
                         <button class="btn primary lg" data-go="config">Создать свой дом</button>
                         <button class="btn ghost lg" data-go="home" data-anchor="projects">Смотреть проекты</button>
                     </div>
                     <dl class="facts" aria-label="Ключевые показатели">
-                        <div><dt>340+</dt><dd>домов сдано</dd></div>
+                        <div><dt>340+</dt><dd>домов сдано (пример)</dd></div>
                         <div><dt>60 дней</dt><dd>от договора до ключей</dd></div>
                         <div><dt>10 лет</dt><dd>гарантии на конструкцию</dd></div>
                     </dl>
@@ -121,7 +121,7 @@
                 <header class="sec-h"><p class="eyebrow">Стоимость</p><h2>Сколько стоит дом</h2>
                     <p>Цена «от» указана для каждой модели. Итоговую сумму фиксируем в договоре.</p></header>
                 <div class="grid">
-                    <div class="card"><h3>Кто платит</h3><p>Частное лицо оплачивает дом по договору. Школы и партнёры — по отдельному договору с организацией.</p></div>
+                    <div class="card"><h3>Кто платит</h3><p>Частное лицо оплачивает дом по договору. Для организаций и партнёров условия согласовываются отдельно.</p></div>
                     <div class="card"><h3>За что</h3><p>Дом с доставкой до 300 км, сборкой, отделкой, электрикой, сантехникой и кухонным блоком. Фундамент и мебель считаются отдельно.</p></div>
                     <div class="card"><h3>Сколько и как часто</h3><p>Сумма — от цены модели, точная — после согласования проекта. Порядок платежей и их график фиксируются в договоре.</p></div>
                 </div>
@@ -168,7 +168,7 @@
 
         <section id="reviews" class="sec alt">
             <div class="wrap">
-                <header class="sec-h"><p class="eyebrow">Отзывы</p><h2>Отзывы владельцев</h2></header>
+                <header class="sec-h"><p class="eyebrow">Отзывы</p><h2>Отзывы владельцев <small>(пример)</small></h2></header>
                 <div class="grid">
                     <figure class="card review">
                         <div class="stars" aria-label="Оценка 5 из 5">★★★★★</div>
@@ -193,7 +193,7 @@
             <div class="wrap narrow">
                 <header class="sec-h"><p class="eyebrow">Вопросы</p><h2>Частые вопросы</h2></header>
                 <details><summary>Сколько стоит дом и что входит в цену?</summary>
-                    <p>«Лесной» от 2,4 млн ₽, «Озёрный» от 3,9 млн ₽, «Семейный» от 5,8 млн ₽. В цену входят доставка до 300 км, сборка, отделка, электрика, сантехника и кухонный блок. Фундамент считаем отдельно, обычно 150–400 тыс. ₽.</p></details>
+                    <p>«Лесной» от 3,82 млн ₽, «Озёрный» от 5,87 млн ₽, «Семейный» от 8,85 млн ₽. В цену входят доставка до 300 км, сборка, отделка, электрика, сантехника и кухонный блок. Фундамент считаем отдельно, обычно 150–400 тыс. ₽.</p></details>
                 <details><summary>Можно ли купить в ипотеку или с маткапиталом?</summary>
                     <p>Да. Работаем с ведущими банками и помогаем собрать документы. Материнский капитал тоже принимаем.</p></details>
                 <details><summary>Как долго служит модульный дом?</summary>
@@ -214,8 +214,8 @@
                 <form class="lead form" id="lead">
                     <input required name="name" placeholder="Ваше имя" aria-label="Имя" autocomplete="name">
                     <input required name="phone" type="tel" placeholder="Телефон" aria-label="Телефон" autocomplete="tel">
-                    <input required name="topic" maxlength="200" placeholder="Тема обращения" aria-label="Тема обращения">
-                    <select required name="recipient" aria-label="Кому адресовать обращение">
+                    <input name="topic" maxlength="200" placeholder="Тема обращения (необязательно)" aria-label="Тема обращения">
+                    <select name="recipient" aria-label="Кому адресовать обращение">
                         <option value="" disabled selected>Кому адресовать обращение</option>
                         <option value="manager">Менеджеру: цены, сроки, договор</option>
                         <option value="designer">Дизайнеру: планировка и интерьер</option>
@@ -564,6 +564,13 @@
             </div>
 
             <div id="st-team" hidden>
+                <div class="card" id="submitBox"><h3>Отправка проектов</h3>
+                    <p class="who">«С регистрацией» — проект отправляется только после входа. «Без регистрации» — отправка по имени и телефону, проект уходит дизайнеру обращением.</p>
+                    <div class="opt" role="group" aria-label="Способ отправки проекта">
+                        <button class="chip" type="button" data-submit-mode="account" aria-pressed="true">С регистрацией</button>
+                        <button class="chip" type="button" data-submit-mode="guest" aria-pressed="false">Без регистрации</button>
+                    </div>
+                </div>
                 <div class="card" id="teamBox"><h3>Команда и роли</h3>
                     <p class="who">Менеджер получает обращения, адресованные менеджеру. Дизайнер ведёт диалоги и проекты, получает обращения, адресованные дизайнеру, и записи на консультации. Креативный дизайнер пополняет список готовых домов. Владелец видит всё.</p>
                     <div id="teamList"></div>
@@ -623,6 +630,7 @@
             <p class="who" id="smInfo"></p>
             <label class="fld">Название проекта<input id="smTitle" maxlength="80"></label>
             <label id="smNewWrap" class="check" hidden><input type="checkbox" id="smNew"><span>Сохранить как новый проект</span></label>
+            <div id="smGuest" hidden><label class="fld">Ваше имя<input id="smGuestName" maxlength="80" autocomplete="name"></label><label class="fld">Телефон<input id="smGuestPhone" type="tel" maxlength="30" autocomplete="tel"></label><label class="fld">Удобный способ связи (необязательно)<input id="smGuestVia" maxlength="60" placeholder="например, MAX или Telegram: @ник"></label></div>
             <button class="btn primary block" id="smGo" type="button">Отправить дизайнеру</button>
             <div class="ok" id="smMsg" role="alert"></div>
         </div>

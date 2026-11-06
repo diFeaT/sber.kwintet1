@@ -8,11 +8,42 @@ import { readyHouse, totalArea, normalizeProject, serializeProject } from './lay
 import { calcProject } from './calc.js';
 import { $, esc, fmt, gtoast, ask } from './util.js';
 import { houseSvg } from './site.js';
+import { ensureThree } from './three-loader.js';
+import { createScene, webglAvailable } from './scene.js';
 
 const FAC_COL = { 'larch-v': '#b9834a', 'larch-h': '#b9834a', graphite: '#3f484c', plaster: '#d9d6cc', 'wood-stone': '#b9834a' };
 const BASE_NAME = { les: 'Лесной', oz: 'Озёрный', sem: 'Семейный' };
 
 let SB = null, MANAGE = false, DB_HOMES = [], DB_OK = true;
+
+/* 3D-снимки домов, как в каталоге на главной: один скрытый рендер на все карточки, результат кэшируется по id */
+const SHOTS = new Map();
+let shotting = false;
+const SHOT_VIEW = { mode: 'overview', showRoof: true, cut: 'full', env: true, shadows: true, time: 'day', autoRotate: false, activeRoom: null, plan: false };
+const shot = (key, name) => SHOTS.has(key) ? `<img src="${SHOTS.get(key)}" alt="3D-визуализация дома «${esc(name)}»" width="640" height="420" loading="lazy">` : '';
+
+async function renderShots(items) {
+  const todo = items.filter(x => !SHOTS.has(x.key));
+  if (!todo.length || shotting) return;
+  if (!(await ensureThree()) || !webglAvailable()) return;
+  shotting = true;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:960px;height:630px;pointer-events:none';
+  const canvas = document.createElement('canvas'); wrap.appendChild(canvas); document.body.appendChild(wrap);
+  let sc = null;
+  try {
+    sc = createScene(canvas, {});
+    sc.resize(true);
+    for (const x of todo) {
+      try {
+        sc.sync(x.house, SHOT_VIEW); sc.cam.preset('iso', x.house); sc.cam.set({ th: .78, ph: 1.08 }); sc.cam.snap();
+        SHOTS.set(x.key, sc.snapshot(960, 630, 'image/jpeg'));
+      } catch (e) { console.warn('ready shot', e) }
+    }
+  } catch (e) { console.warn('ready scene failed', e) }
+  finally { if (sc) sc.dispose(); wrap.remove(); shotting = false }
+  renderGrid();
+}
 
 /* Может ли текущий пользователь добавлять и менять готовые дома (владелец и креативный дизайнер) */
 export const canManageReady = () => MANAGE;
@@ -35,7 +66,7 @@ function summary(v) {
 function card(v) {
   const s = summary(v), fill = FAC_COL[v.facade] || '#b9834a';
   return `<article class="pcard ready-card">
-    <div class="pic">${houseSvg(s.model, fill, s.model.roofType, PRE[v.base].some(a => a[0] === 'ter'))}</div>
+    <div class="pic">${shot('b:' + v.id, v.name) || houseSvg(s.model, fill, s.model.roofType, PRE[v.base].some(a => a[0] === 'ter'))}</div>
     <div class="txt">
       <div class="hd"><h3>${esc(v.name)}</h3><span class="price">≈ ${fmt(s.c.modules + s.c.foundation.total)}</span></div>
       <p class="kit">${esc(v.note)}</p>
@@ -69,7 +100,7 @@ function dbCard(row) {
       <button class="chip" type="button" data-rh-pub="${row.id}" data-on="${row.published ? 0 : 1}">${row.published ? 'Скрыть' : 'Опубликовать'}</button>
       <button class="chip danger" type="button" data-rh-del="${row.id}">Удалить</button></div>` : '';
   return `<article class="pcard ready-card${row.published ? '' : ' is-hidden'}" data-rh="${row.id}">
-    <div class="pic">${houseSvg(model, fill, model.roofType, false)}</div>
+    <div class="pic">${shot('d:' + row.id, row.name) || houseSvg(model, fill, model.roofType, false)}</div>
     <div class="txt">
       <div class="hd"><h3>${esc(row.name)}</h3><span class="price">≈ ${fmt(s.c.modules + s.c.foundation.total)}</span></div>
       ${row.note ? `<p class="kit">${esc(row.note)}</p>` : ''}
@@ -98,6 +129,12 @@ function renderGrid() {
   grid.innerHTML = READY_HOMES.map(card).join('') + DB_HOMES.map(dbCard).join('');
   const msg = $('#readyDbNote'); if (msg) msg.textContent = DB_OK ? '' : 'Дома, добавленные командой, сейчас не загрузились. Встроенные варианты доступны.';
   renderManage();
+  // снимки строятся для всех карточек, которых ещё нет в кэше
+  const items = [
+    ...READY_HOMES.map(v => ({ key: 'b:' + v.id, house: readyHouse(v.id) })),
+    ...DB_HOMES.map(r => ({ key: 'd:' + r.id, house: normalizeProject(r.config).house }))
+  ].filter(x => x.house);
+  renderShots(items);
 }
 
 /* Вызывается из app.js при открытии вкладки и после входа/выхода */

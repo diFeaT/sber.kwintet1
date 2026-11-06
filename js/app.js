@@ -64,7 +64,8 @@ import { chatForProject, generalChat } from './chats.js';
     const isNetErr=e=>!!e&&(e.status===0||e.name==='AuthRetryableFetchError'||/fetch|network|load failed|abort|timeout|ECONN/i.test(String(e.message||'')));
     const TZ=cfg.TIMEZONE||'Europe/Moscow',TZL=cfg.TIMEZONE_LABEL||'Москва';
     const WORK={from:cfg.WORK_FROM!=null?cfg.WORK_FROM:10,to:cfg.WORK_TO!=null?cfg.WORK_TO:19,days:cfg.WORK_DAYS||[1,2,3,4,5,6],ahead:cfg.SLOT_DAYS_AHEAD||14};
-    let PROF=null,recovery=false,amode='in',gtt;
+    let PROF=null,recovery=false,amode='in',gtt,SUBMIT_MODE='account';
+    async function loadSubmitMode(){if(!sb)return;const{data}=await sb.from('app_settings').select('value').eq('key','submit_mode').maybeSingle();SUBMIT_MODE=data&&data.value==='guest'?'guest':'account'}
     const isStaff=()=>!!PROF&&(PROF.role==='owner'||PROF.role==='manager'||PROF.role==='designer');
     const EMAIL_RE=/^[^@\s]+@[^@\s]+\.[^@\s]+$/,USER_RE=/^(?=.*[a-z_])[a-z0-9_]{3,20}$/i;
     const okName=n=>n.length>=3&&n.split(' ').length>=2;
@@ -78,11 +79,11 @@ import { chatForProject, generalChat } from './chats.js';
     async function loadProfile(){
      if(!sb)return;
      const{data:{session}}=await sb.auth.getSession();
-     if(!session){PROF=null;authUI();return}
+     if(!session){PROF=null;authUI();loadSubmitMode();return}
      let r=await sb.from('profiles').select('id,username,full_name,role,phone').eq('id',session.user.id).maybeSingle();
      if(r.error){r=await sb.from('profiles').select('id,username,full_name,role').eq('id',session.user.id).maybeSingle();HAS_PHONE=false}else HAS_PHONE=true;
      const su=session.user||{},authPhone=su.phone?'+'+String(su.phone).replace(/\D/g,''):'';
-     PROF=r.data?{...r.data,email:su.email||'',phone:r.data.phone||authPhone}:null;authUI();
+     PROF=r.data?{...r.data,email:su.email||'',phone:r.data.phone||authPhone}:null;authUI();loadSubmitMode();
     }
     function authUI(){const p=PROF;$('#authBtn').textContent=p?p.full_name:'Войти';$('#outBtn').hidden=!p;$('#staffBtn').hidden=!isStaff();
      const n=document.querySelector('#lead [name=name]');if(p&&n&&!n.value)n.value=p.full_name}
@@ -228,7 +229,7 @@ import { chatForProject, generalChat } from './chats.js';
     
     /* обращения с формы внизу главной страницы */
     async function submitLead(form){const ok=$('#leadOk'),say=t=>{ok.textContent=t;ok.style.display='block'};
-     const fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim(),topic=String(fd.get('topic')||'').trim().slice(0,200),recipient=String(fd.get('recipient')||'');
+     const fd=new FormData(form),name=String(fd.get('name')||'').trim(),phone=String(fd.get('phone')||'').trim(),topic=String(fd.get('topic')||'').trim().slice(0,200),recipient=String(fd.get('recipient')||'manager');
      if(fd.get('website'))return say('Спасибо!');
      if(!sb)return say('Приём обращений пока не настроен. Позвоните нам или напишите в чат.');
      if(name.length<2||phone.replace(/\D/g,'').length<6)return say('Проверьте имя и телефон.');
@@ -354,7 +355,8 @@ import { chatForProject, generalChat } from './chats.js';
     function openSubmit(from){
      if(!sb)return gtoast(NOSB);
      if(!studio.hasRooms())return gtoast('Сначала добавьте хотя бы одну комнату.');
-     if(!PROF){openAuth();amsg('Войдите или зарегистрируйтесь, чтобы отправить проект дизайнеру.');return}
+     if(!PROF&&SUBMIT_MODE!=='guest'){openAuth();amsg('Войдите или зарегистрируйтесь, чтобы отправить проект дизайнеру.');return}
+     $('#smGuest').hidden=!!PROF;$('#smGuestName').value=PROF?'':$('#smGuestName').value;
      submitFrom=from||'config';
      const ses=studio.getSession(),inf=studio.info();
      $('#smTitle').value=ses.title||('Проект от '+new Date().toLocaleDateString('ru-RU'));
@@ -364,7 +366,21 @@ import { chatForProject, generalChat } from './chats.js';
     $('#smGo').onclick=async()=>{const title=$('#smTitle').value.trim();if(!title)return smmsg('Введите название проекта.');
      const ses=studio.getSession();
      $('#smGo').disabled=true;$('#smGo').classList.add('loading');
-     let res;try{res=await sb.rpc('submit_project',{p_id:(ses.projectId&&!$('#smNew').checked)?ses.projectId:null,p_title:title,p_config:studio.serialize(),p_price:studio.price()})}catch(e){res={error:e}}
+     let res;
+     if(!PROF){
+      // гостевой режим: имя и телефон из модального окна, проект уходит дизайнеру обращением
+      const gn=$('#smGuestName').value.trim(),gp=$('#smGuestPhone').value.trim(),gv=$('#smGuestVia').value.trim();
+      if(gn.length<2||gp.replace(/\D/g,'').length<6){$('#smGo').disabled=false;$('#smGo').classList.remove('loading');return smmsg('Укажите имя и телефон.')}
+      const inf=studio.info();
+      // способ связи кладём в начало темы: таблица leads не меняется, а поле попадает в обращение дизайнеру
+      const via=gv?'Связь: '+gv+'. ':'';
+      const topic=(via+'Проект: '+title+'. Комнат: '+inf.rooms+', площадь '+inf.area+' м², модули ≈ '+fmt(inf.price)).slice(0,200);
+      try{res=await sb.from('leads').insert({name:gn,phone:gp,topic,recipient:'designer'}).then(r=>({data:null,error:r.error}))}catch(e){res={error:e}}
+      $('#smGo').disabled=false;$('#smGo').classList.remove('loading');
+      if(res.error)return smmsg('Не удалось отправить проект. Попробуйте ещё раз.');
+      gtoast('Проект отправлен дизайнеру','ok');$('#submitModal').hidden=true;return
+     }
+     try{res=await sb.rpc('submit_project',{p_id:(ses.projectId&&!$('#smNew').checked)?ses.projectId:null,p_title:title,p_config:studio.serialize(),p_price:studio.price()})}catch(e){res={error:e}}
      $('#smGo').disabled=false;$('#smGo').classList.remove('loading');
      const{data,error}=res;
      if(error)return smmsg(isNetErr(error)?explain(error):(error.message||'Не удалось отправить проект.'));
@@ -549,7 +565,16 @@ import { chatForProject, generalChat } from './chats.js';
       if(error)return gtoast('Ошибка: '+error.message);
       gtoast(toArchive?'Проект перемещён в архив':'Проект возвращён из архива');refreshStaff();return}
      const b=e.target.closest('[data-rv]');if(b)openReview(b.dataset.rv)});
+    /* переключатель способа отправки проекта (владелец) */
+    function paintSubmitMode(){document.querySelectorAll('[data-submit-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.submitMode===SUBMIT_MODE)))}
+    $('#submitBox').addEventListener('click',async e=>{const b=e.target.closest('[data-submit-mode]');if(!b||!sb)return;
+     const mode=b.dataset.submitMode;if(mode===SUBMIT_MODE)return;
+     const{error}=await sb.rpc('set_submit_mode',{p_mode:mode});
+     if(error)return gtoast('Ошибка: '+error.message);
+     SUBMIT_MODE=mode;paintSubmitMode();gtoast(mode==='guest'?'Отправка без регистрации включена':'Отправка только с регистрацией');
+    });
     async function refreshTeam(){
+     await loadSubmitMode();paintSubmitMode();
      const{data}=await sb.from('profiles').select('id,username,full_name,role').in('role',['designer','manager']).order('full_name');
      ST.team=data||[];ST.designers=ST.team.filter(m=>m.role==='designer');
      $('#teamList').innerHTML=ST.team.length?ST.team.map(m=>`<div class="send" style="margin-bottom:6px;align-items:center;flex-wrap:wrap"><span style="flex:1">${esc(m.full_name)} <span class="who">@${esc(m.username)}</span></span><select data-role-for="${m.id}" aria-label="Роль: ${esc(m.full_name)}" style="width:auto;max-width:260px"><option value="manager"${m.role==='manager'?' selected':''}>Менеджер</option><option value="designer"${m.role==='designer'?' selected':''}>Дизайнер</option><option value="client">Снять роль (обычный клиент)</option></select></div>`).join(''):'<p class="who">Сотрудников пока нет. Назначьте менеджера или дизайнера по юзернейму.</p>'}

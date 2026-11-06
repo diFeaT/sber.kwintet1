@@ -5,6 +5,7 @@ import { $, $$, esc, fmt } from './util.js';
 import { ensureThree } from './three-loader.js';
 import { createScene, webglAvailable } from './scene.js';
 import { presetHouse, totalArea } from './layout.js';
+import { projectNumbers } from './panels.js';
 import { swatch } from './mats.js';
 
 let hero = null, heroState = 'idle', thumbs = {}, filters = { bed: 'all', ter: false, sort: 'price' }, io = null;
@@ -18,17 +19,19 @@ export function houseSvg(m, f, roofType, terr) {
 }
 const FAC_COL = { 'larch-v': '#b9834a', graphite: '#3f484c', plaster: '#d9d6cc' };
 
+/* Цена модели — та же, что в конструкторе для стандартного дома: модули (фундамент и мебель считаются отдельно). */
+const priceOf = id => projectNumbers(presetHouse(id)).calc.modules;
 const planOf = id => PRE[id].map(a => `${TYPES[a[0]].n} ${a[1]}×${a[2]}`);
 const planArea = id => PRE[id].reduce((s, a) => s + a[1] * a[2], 0);
 const hasTerr = id => PRE[id].some(a => a[0] === 'ter');
 
 function renderCatalog() {
   const list = MODELS.filter(m => (filters.bed === 'all' || String(m.bedrooms) === filters.bed) && (!filters.ter || hasTerr(m.id)))
-    .sort((a, b) => filters.sort === 'area' ? a.area - b.area : a.price - b.price);
+    .sort((a, b) => filters.sort === 'area' ? a.area - b.area : priceOf(a.id) - priceOf(b.id));
   $('#projCount').textContent = list.length === MODELS.length ? `${list.length} модели` : `Найдено: ${list.length} из ${MODELS.length}`;
   $('#projGrid').innerHTML = list.length ? list.map(m => `<article class="pcard">
     <div class="pic" data-model="${m.id}">${thumbs[m.id] ? `<img src="${thumbs[m.id]}" alt="3D-визуализация модели «${esc(m.name)}»" width="640" height="420" loading="lazy">` : houseSvg(m, FAC_COL[m.facade] || '#b9834a', m.roofType, hasTerr(m.id))}</div>
-    <div class="txt"><div class="hd"><h3>${esc(m.name)}</h3><span class="price">от ${fmt(m.price)}</span></div>
+    <div class="txt"><div class="hd"><h3>${esc(m.name)}</h3><span class="price">от ${fmt(priceOf(m.id))}</span></div>
     <ul class="spec"><li><b>${m.area} м²</b><span>площадь</span></li><li><b>${m.bedrooms}</b><span>${m.bedrooms === 1 ? 'спальня' : 'спальни'}</span></li><li><b>${PRE[m.id].length}</b><span>комнат</span></li><li><b>${hasTerr(m.id) ? 'есть' : 'нет'}</b><span>терраса</span></li></ul>
     <p class="plan">Состав по плану: ${planOf(m.id).join(', ')}. В конструкторе по плану ${planArea(m.id)} м².</p>
     <p class="kit">В цену входят доставка до 300 км, сборка, отделка, электрика, сантехника и кухонный блок. Фундамент считается отдельно.</p>
